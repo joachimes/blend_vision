@@ -41,7 +41,7 @@ for class_path in class_paths:
     
     model_files = glob.glob(os.path.join(data_dir, dataset_name, class_path, '**', '*.obj'), recursive=True)
     print(model_files)
-
+    i = 0
     for model_file in model_files:
         model_file_split = model_file.split('/')
         model_hash_index = -2
@@ -58,14 +58,7 @@ for class_path in class_paths:
             bpy.context.scene.collection.objects.unlink(ob)
         bpy.context.scene.render.filepath = os.path.join(data_dir, 'renders', model_file_split[model_hash_index])
         bpy.ops.render.render(write_still = True)
-        # if bpy.context.object.mode == 'EDIT':
-        #     bpy.ops.object.mode_set(mode='OBJECT')
-        # deselect all objects
-        # bpy.ops.object.select_all(action='DESELECT')
-        # select the object
-        # bpy.data.objects[].select_set(True)
-        # delete all selected objects
-        # bpy.ops.object.delete()
+
         bpy.data.collections.remove(myCol)
 
         for collec in bpy.data.collections:
@@ -77,6 +70,7 @@ for class_path in class_paths:
         for mesh in bpy.data.meshes:
             if not mesh.users:
                 print("No users for mesh")
+        i += 1
 
-        break
-
+        if i == 2:
+            break
