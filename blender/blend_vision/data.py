@@ -24,7 +24,8 @@ class data():
                     print(class_obj['metadata']['label'], class_obj['metadata']['numInstances'])
                     self.class_paths += [class_obj['metadata']['name']]
                 if not exists(join(self.data_dir, self.dataset_name, class_obj['metadata']['name'])):
-                    print(f"Data for class {class_obj['metadata']['label']} does not exist")
+                    pass
+                    # print(f"Data for class {class_obj['metadata']['label']} does not exist")
         
 
 

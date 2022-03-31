@@ -5,10 +5,10 @@ class render():
     def __init__(self) -> None:
         pass
 
-    def check_color():
+    def check_color(self):
         pass
 
-    def label_shader_setup(o, color:dict):
+    def label_shader_setup(self, o, color:dict):
         new_node = 'ShaderNodeCombineRGB' #'ShaderNodeRGB', 
         for material_slot in o.material_slots:
             o_node_tree = material_slot.material.node_tree
@@ -19,7 +19,7 @@ class render():
             for val in new_node_obj.inputs:
                 val = color[val.name]
 
-    def label_shader_reset(o):
+    def label_shader_reset(self, o):
         for material_slot in o.material_slots:
             o_node_tree = material_slot.material.node_tree
             new_node_obj = o_node_tree.nodes['Principled BSDF']
@@ -36,11 +36,12 @@ class render():
             self.label_shader_setup(obj_dict['object'], obj_dict['label_color'])
 
     def segmentation_reset(self, scene_objs:list, scene:scene):
-        bpy.context.scene.render.engine = scene._engine
+        print(scene.engine)
+        bpy.context.scene.render.engine = scene.engine
         for obj in scene_objs:
             self.label_shader_reset(obj)
 
-    def composition_setup():
+    def composition_setup(self):
         # switch on nodes and get reference
         bpy.context.scene.use_nodes = True
         tree = bpy.context.scene.node_tree

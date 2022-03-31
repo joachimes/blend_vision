@@ -6,11 +6,10 @@ import json
 import sys
 
 dir = os.path.dirname(__file__)
-print('\n',dir,'\n')
+# print('\n',dir,'\n')
 if not dir in sys.path:
    sys.path.append(dir)
 from blend_vision import scene, data, render_utils
-
 
 data_dir = './data'
 dataset_name = 'ShapeNetCore.v2'
@@ -20,6 +19,8 @@ target_classes = ['camera']
 
 scene_obj = scene() # scene(engine='CYCLES', device='GPU)
 scene_data = data()
+scene_render = render_utils.render()
+
 
 scene_data.load_obj_paths()
 scene_data.render_path()
@@ -63,11 +64,12 @@ for class_path in scene_data.class_paths:
         bpy.context.scene.render.filepath = os.path.join(data_dir, 'renders', model_file_split[model_hash_index])
         bpy.ops.render.render(write_still = True)
 
-
-
+        
+        scene_render.segmentation_reset(scene_objs=bpy.context.selected_objects, scene=scene_obj)
 
         # Remove Collection
         bpy.data.collections.remove(myCol)
 
         scene_obj.clean_up()
+        break
 

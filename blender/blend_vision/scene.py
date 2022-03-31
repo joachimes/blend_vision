@@ -2,23 +2,20 @@ from itertools import cycle
 import bpy
 
 class scene():
-    def __init__(self, engine='BLENDER_EEVEE', device=None):
+    def __init__(self, engine='BLENDER_EEVEE', device=None) -> None:
         # bpy.context.scene.render.engine = 'CYCLES'
         # bpy.context.scene.render.engine = 'BLENDER_EEVEE'
         # bpy.context.scene.cycles.device = 'GPU'
-        self._engine = engine
         self.engine = engine
-        self.__engine = engine
-        self.__device = device
-        print()
-        print(engine, self._engine, self.engine, self.__engine)
-        print()
+
+        # self.__engine = engine
+        # print('Weird prints')
+        # print(engine, self.__engine, self.engine)
+        # print()
         bpy.context.scene.render.engine = engine
-        if self.__engine == 'CYCLES':
+        if self.engine == 'CYCLES':
             bpy.context.scene.cycles.device = self.__device
 
-    def __getattribute__(self, __name: str) -> any:
-        return __name
 
     def clean_up():
         # Delete all textures, materials and meshes
