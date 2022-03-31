@@ -1,8 +1,15 @@
 import bpy
+import mathutils
 import os
 import glob
 import json
+import sys
 
+dir = os.path.dirname(__file__)
+print('\n',dir,'\n')
+if not dir in sys.path:
+   sys.path.append(dir)
+from blend_vision import scene, data, render_utils
 
 
 data_dir = './data'
@@ -11,89 +18,14 @@ json_name = 'shapenetcore.taxonomy.json'
 model_name = 'model_normalized.obj'
 target_classes = ['camera']
 
-bpy.context.scene.render.engine = 'CYCLES'
-bpy.context.scene.render.engine = 'BLENDER_EEVEE'
-bpy.context.scene.cycles.device = 'GPU'
+scene_obj = scene() # scene(engine='CYCLES', device='GPU)
+scene_data = data()
+
+scene_data.load_obj_paths()
+scene_data.render_path()
 
 
-class Scene():
-    def __init__(self, engine, device) -> None:
-        self.__engine = engine
-        self.__device = device
-
-    def __getattribute__(self, __name: str) -> any:
-        return __name
-
-
-class Data():
-    def __init__(self,paths) -> None:
-        # Read yaml file and extract data
-        self.data_dir = './data'
-        self.dataset_name = 'ShapeNetCore.v2'
-        self.json_name = 'shapenetcore.taxonomy.json'
-        self.model_name = 'model_normalized.obj'
-        self.target_classes = ['camera']
-    
-
-def file_setup():
-    pass
-
-def label_shader_setup(o):
-    pass
-
-
-
-def composition_setup():
-
-    # switch on nodes and get reference
-    bpy.context.scene.use_nodes = True
-    tree = bpy.context.scene.node_tree
-
-    # clear default nodes
-    for node in tree.nodes:
-        tree.nodes.remove(node)
-
-    scene_nodes = []
-    desired_nodes = ['CompositorNodeRLayers', 'CompositorNodeMath', 'CompositorNodeInvert', 'CompositorNodeMath', 'CompositorNodeOutputFile']
-    for node in desired_nodes:
-        if node == 'CompositorNodeRLayers':
-            compositor_node = tree.nodes.new(type=node)
-        else:
-            scene_nodes.append(tree.nodes.new(type=node))
-
-    # create input image node
-    ['normal', 'class_segmentation', 'object_segmentation', 'depth']
-
-    ['Image', 'Mist', 'Normal', 'IndexOB']
-
-    # link nodes
-    links = tree.links
-    link = links.new(compositor_node.outputs[0], scene_nodes[0].inputs[0])
-
-
-
-with open(os.path.join(data_dir, json_name)) as f:
-    dataset_json = json.load(f)
-
-class_paths = []
-for class_obj in dataset_json:
-    for target_class in target_classes:
-        if target_class in class_obj['metadata']['label'] and os.path.exists(os.path.join(data_dir, dataset_name, class_obj['metadata']['name'])):
-            print(class_obj['metadata']['label'], class_obj['metadata']['numInstances'])
-            class_paths += [class_obj['metadata']['name']]
-        if not os.path.exists(os.path.join(data_dir, dataset_name, class_obj['metadata']['name'])):
-            print(f"Data for class {class_obj['metadata']['label']} does not exist")
-
-
-# setup correct folder path
-if not os.path.exists(os.path.join(data_dir, 'renders')):
-    os.mkdir(os.path.join(data_dir, 'renders'))
-else:
-    # Cleaning old renders
-    for img in glob.glob(os.path.join(data_dir, 'renders', '*.png')):
-        os.remove(img)
-
-for class_path in class_paths:
+for class_path in scene_data.class_paths:
     
     model_files = glob.glob(os.path.join(data_dir, dataset_name, class_path, '**', '*.obj'), recursive=True)
     i = 0
@@ -132,14 +64,10 @@ for class_path in class_paths:
         bpy.ops.render.render(write_still = True)
 
 
+
+
         # Remove Collection
         bpy.data.collections.remove(myCol)
 
-        # Delete all textures, materials and meshes
-        for img in bpy.data.images:
-            bpy.data.images.remove(img)
-        for mesh in bpy.data.meshes:
-            bpy.data.meshes.remove(mesh)
-        for material in bpy.data.materials:
-            bpy.data.materials.remove(material)
+        scene_obj.clean_up()
 
