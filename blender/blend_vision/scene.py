@@ -7,17 +7,12 @@ class scene():
         # bpy.context.scene.render.engine = 'BLENDER_EEVEE'
         # bpy.context.scene.cycles.device = 'GPU'
         self.engine = engine
-
-        # self.__engine = engine
-        # print('Weird prints')
-        # print(engine, self.__engine, self.engine)
-        # print()
         bpy.context.scene.render.engine = engine
         if self.engine == 'CYCLES':
             bpy.context.scene.cycles.device = self.__device
 
 
-    def clean_up():
+    def clean_up(self):
         # Delete all textures, materials and meshes
         for img in bpy.data.images:
             bpy.data.images.remove(img)

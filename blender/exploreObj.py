@@ -4,9 +4,13 @@ import os
 import glob
 import json
 import sys
+import random
+
+import time
+
+
 
 dir = os.path.dirname(__file__)
-# print('\n',dir,'\n')
 if not dir in sys.path:
    sys.path.append(dir)
 from blend_vision import scene, data, render_utils
@@ -29,9 +33,11 @@ scene_data.render_path()
 for class_path in scene_data.class_paths:
     
     model_files = glob.glob(os.path.join(data_dir, dataset_name, class_path, '**', '*.obj'), recursive=True)
-    i = 0
     for model_file in model_files:
         
+        SEED = time.time()
+        random.seed(SEED)
+
         # Parse path
         model_file_split = model_file.split('/')
         model_hash_index = -2
@@ -60,16 +66,20 @@ for class_path in scene_data.class_paths:
             if check_collection:
                 bpy.context.scene.collection.objects.unlink(ob)
         
+
+
+        scene_render.label_objs(bpy.data.objects)
         # Render pass
-        bpy.context.scene.render.filepath = os.path.join(data_dir, 'renders', model_file_split[model_hash_index])
+        bpy.context.scene.render.filepath = os.path.join(data_dir, 'renders', model_file_split[model_hash_index] + "_label")
         bpy.ops.render.render(write_still = True)
 
         
-        scene_render.segmentation_reset(scene_objs=bpy.context.selected_objects, scene=scene_obj)
+        scene_render.segmentation_reset(objs=bpy.data.objects, scene=scene_obj)
+        bpy.context.scene.render.filepath = os.path.join(data_dir, 'renders', model_file_split[model_hash_index])
+        bpy.ops.render.render(write_still = True)
 
         # Remove Collection
         bpy.data.collections.remove(myCol)
 
         scene_obj.clean_up()
-        break
 
