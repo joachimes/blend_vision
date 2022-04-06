@@ -1,6 +1,5 @@
 import bpy
 from .scene import scene
-import glob
 from random import Random
 class render():
     def __init__(self) -> None:
@@ -41,11 +40,11 @@ class render():
     def label_objs(self, objs, label_colors:list[dict]=[]) -> None:
         bpy.context.scene.render.engine = 'BLENDER_EEVEE'
         if len(objs) - len(label_colors) > 0:
-            randomgen = Random()
+            rand_gen = Random()
             for i in range(len(objs) - len(label_colors)):
-                label_colors.append({ 'R':randomgen.uniform(0,1)
-                                    , 'G':randomgen.uniform(0,1)
-                                    , 'B':randomgen.uniform(0,1) })
+                label_colors.append({ 'R':rand_gen.uniform(0,1)
+                                    , 'G':rand_gen.uniform(0,1)
+                                    , 'B':rand_gen.uniform(0,1) })
 
         print(label_colors)
         for o, color in zip(objs, label_colors[:len(objs)]):
@@ -67,30 +66,48 @@ class render():
 
 
     def composition_setup(self):
+        scene_context = bpy.context.scene
+        scene_context.view_layers["ViewLayer"].use_pass_z = True
+        scene_context.view_layers["ViewLayer"].use_pass_normal = True
+
         # switch on nodes and get reference
-        bpy.context.scene.use_nodes = True
-        tree = bpy.context.scene.node_tree
+        scene_context.use_nodes = True
+        tree = scene_context.node_tree
 
         # clear default nodes
         for node in tree.nodes:
             tree.nodes.remove(node)
 
-        scene_nodes = []
+        scene_nodes = {}
         desired_nodes = ['CompositorNodeRLayers'
                         , 'CompositorNodeMath'
-                        , 'CompositorNodeInvert'
-                        , 'CompositorNodeMath'
+                        , 'CompositorNodeMapRange'
                         , 'CompositorNodeOutputFile']
         for node in desired_nodes:
-            if node == 'CompositorNodeRLayers':
-                compositor_node = tree.nodes.new(type=node)
-            else:
-                scene_nodes.append(tree.nodes.new(type=node))
+            scene_nodes[node] = tree.nodes.new(type=node)
 
         # create input image node
-        ['normal', 'class_segmentation', 'object_segmentation', 'depth']
+        ['normal', 'depth']
+        ['Image', 'Depth', 'Normal']
 
-        ['Image', 'Mist', 'Normal', 'IndexOB']
 
         # link nodes
-        links = tree.links.new(compositor_node.outputs[0], scene_nodes[0].inputs[0])
+        output_node = scene_nodes['CompositorNodeOutputFile']
+        output_node.base_path = bpy.context.scene.render.filepath
+
+        # Base image
+        tree.links.new(output_node.inputs['Image'], scene_nodes['CompositorNodeRLayers'].outputs['Image'])
+
+        # Depth image
+        scene_nodes['CompositorNodeMath'].opertation = 'DIVIDE' 
+        scene_nodes['CompositorNodeMath'].inputs[1].default_value = 100 # 
+        tree.links.new(scene_nodes['CompositorNodeMath'].inputs[0], scene_nodes['CompositorNodeRLayers'].outputs['Depth'])
+        tree.links.new(output_node.inputs['Depth'], scene_nodes['CompositorNodeMath'].outputs['Value'])
+
+        # Normal image
+        tree.links.new(output_node.inputs['Normal'], scene_nodes['CompositorNodeRLayers'].outputs['Normal'])
+
+
+    def composition_reset(self):
+        scene_context = bpy.context.scene
+        scene_context.use_nodes = False

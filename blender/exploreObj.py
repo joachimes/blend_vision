@@ -28,12 +28,13 @@ scene_render = render_utils.render()
 
 scene_data.load_obj_paths()
 scene_data.render_path()
+scene_obj.clean_up()
 
 
 for class_path in scene_data.class_paths:
     
     model_files = glob.glob(os.path.join(data_dir, dataset_name, class_path, '**', '*.obj'), recursive=True)
-    for model_file in model_files:
+    for i, model_file in enumerate(model_files):
         
         SEED = time.time()
         random.seed(SEED)
@@ -47,6 +48,12 @@ for class_path in scene_data.class_paths:
         # Import
         bpy.ops.import_scene.obj(filepath=model_file)
         
+        # Are these lines needed?
+        obj = bpy.context.selected_objects[0]
+        
+        rand_gen = random.Random()
+        obj.location = (rand_gen.uniform(-2, 2), rand_gen.uniform(-2, 2),rand_gen.uniform(-2, 2))
+        
         
         collection_name = model_file_split[model_hash_index]
         obj_name = model_file_split[-1].replace('.obj', '')
@@ -54,32 +61,33 @@ for class_path in scene_data.class_paths:
         
         # Init collection
         myCol = bpy.data.collections.new(collection_name)
-        # Are these lines needed?
-        obj_object = bpy.context.selected_objects[0]
         bpy.context.scene.collection.children.link(myCol)
         # Check if mesh is in collection
         check_collection = [i for i in bpy.context.scene.collection.objects]
         # add mesh to correct collection
-        for ob in bpy.context.selected_objects:
-            myCol.objects.link(ob)
+        for o in bpy.context.selected_objects:
+            myCol.objects.link(o)
             
             if check_collection:
-                bpy.context.scene.collection.objects.unlink(ob)
+                bpy.context.scene.collection.objects.unlink(o)
         
+        if i > 0:
+            break
 
-
-        scene_render.label_objs(bpy.data.objects)
-        # Render pass
-        bpy.context.scene.render.filepath = os.path.join(data_dir, 'renders', model_file_split[model_hash_index] + "_label")
-        bpy.ops.render.render(write_still = True)
-
-        
-        scene_render.segmentation_reset(objs=bpy.data.objects, scene=scene_obj)
-        bpy.context.scene.render.filepath = os.path.join(data_dir, 'renders', model_file_split[model_hash_index])
-        bpy.ops.render.render(write_still = True)
+    # Render label pass
+    bpy.context.scene.render.filepath = os.path.join(data_dir, 'labels', model_file_split[model_hash_index])
+    scene_render.label_objs(bpy.data.objects)
+    scene_render.composition_setup()
+    bpy.ops.render.render()
+    scene_render.composition_reset()
+    
+    # Render final pass
+    scene_render.segmentation_reset(objs=bpy.data.objects, scene=scene_obj)
+    bpy.context.scene.render.filepath = os.path.join(data_dir, 'renders', model_file_split[model_hash_index])
+    bpy.ops.render.render(write_still = True)
 
         # Remove Collection
-        bpy.data.collections.remove(myCol)
+        # bpy.data.collections.remove(myCol)
 
-        scene_obj.clean_up()
+        # scene_obj.clean_up()
 
