@@ -10,23 +10,26 @@ class transform():
         self.transforms = []
 
 
-    def __update_attr__(self, obj, attribute) -> None:
+    def __update_attr__(self, obj, attribute, rng=2) -> None:
         obj_attr = getattr(obj, attribute)
         obj_attr_vals = []
         for _ in range(len(obj_attr)):
-            obj_attr_vals.append(self.rand_gen.uniform(-2, 2))
-        obj_attr = tuple(obj_attr_vals)
+            obj_attr_vals.append(self.rand_gen.uniform(-rng, rng))
+        obj_attr = type(obj_attr)(obj_attr_vals)
+        return obj_attr
     
     
     def position(self, obj) -> None:
-        self.__update_attr__(obj, 'location')
+        obj.location = self.__update_attr__(obj, 'location')
 
 
     def rotation(self, obj) -> None:
-        self.__update_attr__(obj, 'rotation_quaternion')
+        obj.rotation_euler = self.__update_attr__(obj, 'rotation_euler', rng=1)
+
 
     def set_transforms(self, transforms:list) -> None:
         self.transforms.extend(transforms)
+
 
     def get_transforms(self) -> list:
         return self.transforms

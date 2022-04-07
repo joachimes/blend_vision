@@ -53,7 +53,6 @@ def main():
             # Init collection
             # Check if mesh is in collection
             check_collection = [i for i in bpy.context.scene.collection.objects]
-            print(check_collection)
             # add mesh to correct collection
             for o in bpy.context.selected_objects:
                 class_collection.objects.link(o)
@@ -61,7 +60,7 @@ def main():
                 if check_collection:
                     bpy.context.scene.collection.objects.unlink(o)
             
-            if i > 3:
+            if i > 20:
                 break
 
         scene_render.semantic_label_reset(class_collection.objects) #
