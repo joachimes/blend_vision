@@ -1,4 +1,5 @@
 import bpy
+import os
 from .scene import scene
 from random import Random
 class render():
@@ -46,7 +47,6 @@ class render():
                                     , 'G':rand_gen.uniform(0,1)
                                     , 'B':rand_gen.uniform(0,1) })
 
-        print(label_colors)
         for o, color in zip(objs, label_colors[:len(objs)]):
             self.label_shader_setup(o, color)
 
@@ -82,30 +82,35 @@ class render():
         desired_nodes = ['CompositorNodeRLayers'
                         , 'CompositorNodeMath'
                         , 'CompositorNodeMapRange'
-                        , 'CompositorNodeOutputFile']
+                        , 'CompositorNodeComposite']
         for node in desired_nodes:
             scene_nodes[node] = tree.nodes.new(type=node)
 
         # create input image node
-        ['normal', 'depth']
+        maps = ['Normal', 'Depth']
         ['Image', 'Depth', 'Normal']
 
+        file_outputs = {}
+        path_list = os.path.normpath(bpy.context.scene.render.filepath).split(os.path.sep)
+        for map in maps:
+            path_list[-2] = map
+            file_outputs[map] = tree.nodes.new('CompositorNodeOutputFile')
+            file_outputs[map].base_path = os.path.join(*path_list)
+
+        print(f'\n {scene_nodes}\n')
 
         # link nodes
-        output_node = scene_nodes['CompositorNodeOutputFile']
-        output_node.base_path = bpy.context.scene.render.filepath
-
         # Base image
-        tree.links.new(output_node.inputs['Image'], scene_nodes['CompositorNodeRLayers'].outputs['Image'])
+        tree.links.new(scene_nodes['CompositorNodeComposite'].inputs['Image'], scene_nodes['CompositorNodeRLayers'].outputs['Image'])
 
         # Depth image
-        scene_nodes['CompositorNodeMath'].opertation = 'DIVIDE' 
+        scene_nodes['CompositorNodeMath'].operation = 'DIVIDE' 
         scene_nodes['CompositorNodeMath'].inputs[1].default_value = 100 # 
         tree.links.new(scene_nodes['CompositorNodeMath'].inputs[0], scene_nodes['CompositorNodeRLayers'].outputs['Depth'])
-        tree.links.new(output_node.inputs['Depth'], scene_nodes['CompositorNodeMath'].outputs['Value'])
+        tree.links.new(file_outputs['Depth'].inputs['Image'], scene_nodes['CompositorNodeMath'].outputs['Value'])
 
         # Normal image
-        tree.links.new(output_node.inputs['Normal'], scene_nodes['CompositorNodeRLayers'].outputs['Normal'])
+        tree.links.new(file_outputs['Normal'].inputs['Image'], scene_nodes['CompositorNodeRLayers'].outputs['Normal'])
 
 
     def composition_reset(self):

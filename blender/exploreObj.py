@@ -75,16 +75,16 @@ for class_path in scene_data.class_paths:
             break
 
     # Render label pass
-    bpy.context.scene.render.filepath = os.path.join(data_dir, 'labels', model_file_split[model_hash_index])
+    bpy.context.scene.render.filepath = os.path.join(data_dir, 'Labels', model_file_split[model_hash_index])
     scene_render.label_objs(bpy.data.objects)
-    scene_render.composition_setup()
-    bpy.ops.render.render()
-    scene_render.composition_reset()
+    bpy.ops.render.render(write_still = True)
+    scene_render.segmentation_reset(objs=bpy.data.objects, scene=scene_obj)
     
     # Render final pass
-    scene_render.segmentation_reset(objs=bpy.data.objects, scene=scene_obj)
-    bpy.context.scene.render.filepath = os.path.join(data_dir, 'renders', model_file_split[model_hash_index])
+    scene_render.composition_setup()
+    bpy.context.scene.render.filepath = os.path.join(data_dir, 'Renders', model_file_split[model_hash_index])
     bpy.ops.render.render(write_still = True)
+    scene_render.composition_reset()
 
         # Remove Collection
         # bpy.data.collections.remove(myCol)
