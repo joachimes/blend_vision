@@ -5,7 +5,7 @@ from os.path import join, exists
 
 
 class data():
-    def __init__(self,paths='./data') -> None:
+    def __init__(self, paths='./data') -> None:
         # Read yaml file and extract data
         self.data_dir = paths
         self.dataset_name = 'ShapeNetCore.v2'
@@ -13,6 +13,7 @@ class data():
         self.model_name = 'model_normalized.obj'
         self.target_classes = ['camera']
         self.class_paths = []
+
 
     def load_obj_paths(self) -> None:
         with open(join(self.data_dir, self.json_name)) as f:
@@ -27,7 +28,6 @@ class data():
                     pass
                     # print(f"Data for class {class_obj['metadata']['label']} does not exist")
         
-
 
     def render_path(self) -> None:
         # setup correct folder path

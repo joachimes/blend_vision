@@ -1,14 +1,16 @@
 import bpy
 import os
+from time import time
+from random import Random, seed
+
 from .scene import scene
-from random import Random
+
+
 class render():
-    def __init__(self) -> None:
-        pass
-
-
-    def check_color(self):
-        pass
+    def __init__(self, rnd_seed=None) -> None:
+        if rnd_seed is None:
+            seed(time())
+        self.rand_gen = Random()
 
     
     def link_nodes(self, o_node_tree, input_node, output_node, input_node_target:str, output_node_target:str='Surface') -> None:
@@ -38,81 +40,40 @@ class render():
                             , input_node_target='BSDF')
 
 
-    def label_objs(self, objs, label_colors:list[dict]=[]) -> None:
+    def instance_label_objs(self, objs, label_colors:list[dict]=[]) -> None:
         bpy.context.scene.render.engine = 'BLENDER_EEVEE'
         if len(objs) - len(label_colors) > 0:
-            rand_gen = Random()
             for i in range(len(objs) - len(label_colors)):
-                label_colors.append({ 'R':rand_gen.uniform(0,1)
-                                    , 'G':rand_gen.uniform(0,1)
-                                    , 'B':rand_gen.uniform(0,1) })
+                label_colors.append({ 'R':self.rand_gen.uniform(0,1)
+                                    , 'G':self.rand_gen.uniform(0,1)
+                                    , 'B':self.rand_gen.uniform(0,1) })
 
-        for o, color in zip(objs, label_colors[:len(objs)]):
-            self.label_shader_setup(o, color)
+        for o, label_color in zip(objs, label_colors[:len(objs)]):
+            self.label_shader_setup(o, label_color)
 
+    def semantic_label_setup(self, obj_collection, label_color:dict=None, sample_color:bool=False):
+        if label_color is None:
+            label_color = {'R':0,'B':0,'G':0}
+            if sample_color:
+                label_color = { 'R':self.rand_gen.uniform(0,1)
+                                , 'G':self.rand_gen.uniform(0,1)
+                                , 'B':self.rand_gen.uniform(0,1) }
+        for o in obj_collection:
+            self.label_shader_setup(o, label_color)
+
+    def semantic_label_reset(self, obj_collection):
+        self.semantic_label_setup(obj_collection)
 
     # obj_dict = {'object':obj, 'label_color':dict}
     # label_color = {'R':float, 'B':float, 'G':float}
-    def segmentation_setup(self, scene_objs:list[dict]):
+    def instance_segmentation_setup(self, scene_objs:list[dict]):
         bpy.context.scene.render.engine = 'BLENDER_EEVEE'
         for obj_dict in scene_objs:
             self.label_shader_setup(obj_dict['object'], obj_dict['label_color'])
 
+        
 
     def segmentation_reset(self, objs:list, scene:scene):
         bpy.context.scene.render.engine = scene.engine
         for o in objs:
             self.label_shader_reset(o)
-
-
-    def composition_setup(self):
-        scene_context = bpy.context.scene
-        scene_context.view_layers["ViewLayer"].use_pass_z = True
-        scene_context.view_layers["ViewLayer"].use_pass_normal = True
-
-        # switch on nodes and get reference
-        scene_context.use_nodes = True
-        tree = scene_context.node_tree
-
-        # clear default nodes
-        for node in tree.nodes:
-            tree.nodes.remove(node)
-
-        scene_nodes = {}
-        desired_nodes = ['CompositorNodeRLayers'
-                        , 'CompositorNodeMath'
-                        , 'CompositorNodeMapRange'
-                        , 'CompositorNodeComposite']
-        for node in desired_nodes:
-            scene_nodes[node] = tree.nodes.new(type=node)
-
-        # create input image node
-        maps = ['Normal', 'Depth']
-        ['Image', 'Depth', 'Normal']
-
-        file_outputs = {}
-        path_list = os.path.normpath(bpy.context.scene.render.filepath).split(os.path.sep)
-        for map in maps:
-            path_list[-2] = map
-            file_outputs[map] = tree.nodes.new('CompositorNodeOutputFile')
-            file_outputs[map].base_path = os.path.join(*path_list)
-
-        print(f'\n {scene_nodes}\n')
-
-        # link nodes
-        # Base image
-        tree.links.new(scene_nodes['CompositorNodeComposite'].inputs['Image'], scene_nodes['CompositorNodeRLayers'].outputs['Image'])
-
-        # Depth image
-        scene_nodes['CompositorNodeMath'].operation = 'DIVIDE' 
-        scene_nodes['CompositorNodeMath'].inputs[1].default_value = 100 # 
-        tree.links.new(scene_nodes['CompositorNodeMath'].inputs[0], scene_nodes['CompositorNodeRLayers'].outputs['Depth'])
-        tree.links.new(file_outputs['Depth'].inputs['Image'], scene_nodes['CompositorNodeMath'].outputs['Value'])
-
-        # Normal image
-        tree.links.new(file_outputs['Normal'].inputs['Image'], scene_nodes['CompositorNodeRLayers'].outputs['Normal'])
-
-
-    def composition_reset(self):
-        scene_context = bpy.context.scene
-        scene_context.use_nodes = False
