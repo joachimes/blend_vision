@@ -16,8 +16,10 @@ class scene():
         self.engine = engine
         self.__device = device
         bpy.context.scene.render.engine = engine
-        if self.engine == 'CYCLES' and self.__device is not None:
-            bpy.context.scene.cycles.device = self.__device
+        if self.engine == 'CYCLES':
+            bpy.context.scene.cycles.samples = 256
+            if self.__device is not None:
+                bpy.context.scene.cycles.device = self.__device
 
 
     def randomize(self, objs, randomizations:list[transform]):

@@ -5,6 +5,7 @@ import random
 class hdri():
     def __init__(self, path:str) -> None:
         self.path = path
+        self.node_background = None
 
 
     def set_hdri(self, path) -> None:
@@ -13,7 +14,7 @@ class hdri():
         tree_nodes.clear()
 
         # Add Background node
-        node_background = tree_nodes.new(type='ShaderNodeBackground')
+        self.node_background = tree_nodes.new(type='ShaderNodeBackground')
 
         # Add Environment Texture node
         node_environment = tree_nodes.new('ShaderNodeTexEnvironment')
@@ -27,8 +28,17 @@ class hdri():
 
         # Link all nodes
         links = node_tree.links
-        link = links.new(node_environment.outputs["Color"], node_background.inputs["Color"])
-        link = links.new(node_background.outputs["Background"], node_output.inputs["Surface"])
+        link = links.new(node_environment.outputs["Color"], self.node_background.inputs["Color"])
+        link = links.new(self.node_background.outputs["Background"], node_output.inputs["Surface"])
+
+
+    def deactivate_hdri(self):
+        assert self.node_background != None
+        self.node_background.inputs[1].default_value = 0.0
+
+    def reactivate_hdri(self):
+        assert self.node_background != None
+        self.node_background.inputs[1].default_value = 1.0
 
 
     def set_random_hdri(self) -> None:
