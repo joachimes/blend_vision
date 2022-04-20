@@ -44,7 +44,7 @@ class composition():
 
         # Depth image
         scene_nodes['CompositorNodeMath'].operation = 'DIVIDE' 
-        scene_nodes['CompositorNodeMath'].inputs[1].default_value = 100 # 
+        scene_nodes['CompositorNodeMath'].inputs[1].default_value = 100.0 # 
         tree.links.new(scene_nodes['CompositorNodeMath'].inputs[0], scene_nodes['CompositorNodeRLayers'].outputs['Depth'])
         tree.links.new(file_outputs['Depth'].inputs['Image'], scene_nodes['CompositorNodeMath'].outputs['Value'])
 

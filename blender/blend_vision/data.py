@@ -11,6 +11,7 @@ class data():
         self.dataset_name = 'ShapeNetCore.v2'
         self.json_name = 'shapenetcore.taxonomy.json'
         self.model_name = 'model_normalized.obj'
+        self.hdri_folder_path = 'hdri'
         self.target_classes = ['camera']
         self.class_paths = []
 

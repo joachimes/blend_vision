@@ -8,7 +8,7 @@ import sys
 dir = os.path.dirname(__file__)
 if not dir in sys.path:
     sys.path.append(dir)
-from blend_vision import scene, data, render, transform, composition
+from blend_vision import scene, data, render, transform, composition, hdri
 
 
 def main():
@@ -18,9 +18,11 @@ def main():
     json_name = 'shapenetcore.taxonomy.json'
     model_name = 'model_normalized.obj'
     target_classes = ['camera']
+    hdri_folder_path = 'hdri'
 
-    scene_obj = scene() # scene(engine='CYCLES', device='GPU)
+    scene_obj = scene() #engine='CYCLES', device='GPU')
     scene_data = data()
+    scene_hdri = hdri(os.path.join(scene_data.data_dir, scene_data.hdri_folder_path))
     scene_render = render()
     scene_transform = transform()
     scene_transform.set_transforms([scene_transform.position, scene_transform.rotation])
@@ -31,6 +33,10 @@ def main():
     scene_data.render_path()
     scene_obj.clean_up()
 
+
+
+    
+    # bpy.ops.mesh.primitive_plane_add(size=50, location=(0,0,-2))
 
     for class_path in scene_data.class_paths:
         class_collection = bpy.data.collections.new(class_path)
@@ -60,7 +66,7 @@ def main():
                 if check_collection:
                     bpy.context.scene.collection.objects.unlink(o)
             
-            if i > 20:
+            if i > 2:
                 break
 
         scene_render.semantic_label_reset(class_collection.objects) #
@@ -72,7 +78,6 @@ def main():
         bpy.ops.render.render(write_still = True)
         scene_render.semantic_label_reset(obj_collection=collection.objects)
 
-
     # Render instance label pass
     bpy.context.scene.render.filepath = os.path.join(scene_data.data_dir, 'Labels', model_file_split[model_hash_index])
     scene_render.instance_label_objs(bpy.data.objects)
@@ -81,6 +86,7 @@ def main():
     # Reset shading before final render
     scene_render.segmentation_reset(objs=bpy.data.objects, scene=scene_obj)
 
+    scene_hdri.set_random_hdri()
 
     # Render final pass
     scene_comp.composition_setup()

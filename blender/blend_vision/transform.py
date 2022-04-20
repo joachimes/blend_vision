@@ -24,7 +24,7 @@ class transform():
 
 
     def rotation(self, obj) -> None:
-        obj.rotation_euler = self.__update_attr__(obj, 'rotation_euler', rng=1)
+        obj.rotation_euler = self.__update_attr__(obj, 'rotation_euler', rng=6)
 
 
     def set_transforms(self, transforms:list) -> None:
