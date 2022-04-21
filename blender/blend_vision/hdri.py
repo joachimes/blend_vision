@@ -43,5 +43,4 @@ class hdri():
 
     def set_random_hdri(self) -> None:
         hdri_file = random.choice(os.listdir(self.path))
-        print(os.path.join(self.path, hdri_file))
         self.set_hdri(os.path.join(self.path, hdri_file))

@@ -9,7 +9,7 @@ import random
 dir = os.path.dirname(__file__)
 if not dir in sys.path:
     sys.path.append(dir)
-from blend_vision import scene, data, render, transform, composition, hdri
+from blend_vision import scene, data, render, transform, composition, hdri, texture
 
 
 def main():
@@ -22,30 +22,33 @@ def main():
     hdri_folder_path = 'hdri'
 
     scene_obj = scene(engine='CYCLES', device='GPU')
+    scene_obj.clean_up()
     scene_data = data()
     scene_hdri = hdri(os.path.join(scene_data.data_dir, scene_data.hdri_folder_path))
     scene_render = render()
     scene_transform = transform()
     scene_transform.set_transforms([scene_transform.position, scene_transform.rotation])
     scene_comp = composition()
-
+    obj_texture = texture(os.path.join(scene_data.data_dir, 'textures'))
 
     scene_data.load_obj_paths()
     # scene_data.render_path()
-    scene_obj.clean_up()
 
     scene_hdri.set_random_hdri()
 
 
     
-    # bpy.ops.mesh.primitive_plane_add(size=50, location=(0,0,-2))
+    bpy.ops.mesh.primitive_plane_add(size=50, location=(0,0,-2))
+    for obj in bpy.data.collections['Collection'].objects:
+        if 'Camera' not in obj.name and 'Light' not in obj.name:
+            obj_texture.set_random_material(obj)
 
     for class_path in scene_data.class_paths:
         class_collection = bpy.data.collections.new(class_path)
         bpy.context.scene.collection.children.link(class_collection)
         
         model_files = glob.glob(os.path.join(scene_data.data_dir, scene_data.dataset_name, class_path, '**', '*.obj'), recursive=True)
-        sample_amount = random.randint(5, 20)
+        sample_amount = random.randint(1,5)#(5, 20)
         model_files_sample = random.sample(model_files, sample_amount)
  
         for i, model_file in enumerate(model_files_sample):
@@ -78,7 +81,7 @@ def main():
         scene_obj.randomize(class_collection.objects, scene_transform.get_transforms())
     scene_hdri.deactivate_hdri()
     for collection in bpy.data.collections:
-        if collection.name == "Collection":
+        if collection.name in ['Collection']:
             continue
         scene_render.semantic_label_setup(obj_collection=collection.objects, sample_color=True)
         bpy.context.scene.render.filepath = os.path.join(scene_data.data_dir, 'Labels', collection.name, model_file_split[model_hash_index])
