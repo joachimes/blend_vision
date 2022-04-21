@@ -1,3 +1,5 @@
+import bpy
+import random
 from json import load
 from glob import glob
 from os import mkdir, remove
@@ -12,8 +14,10 @@ class data():
         self.json_name = 'shapenetcore.taxonomy.json'
         self.model_name = 'model_normalized.obj'
         self.hdri_folder_path = 'hdri'
-        self.target_classes = ['camera']
+        self.target_classes = ['camera', 'table', 'car', 'plane']
         self.class_paths = []
+        self.num_obj_min = 5
+        self.num_obj_max = 20
 
 
     def load_obj_paths(self) -> None:
@@ -29,6 +33,40 @@ class data():
                     pass
                     # print(f"Data for class {class_obj['metadata']['label']} does not exist")
         
+    
+
+    def load_data(self):
+        for class_path in self.class_paths:
+            class_collection = bpy.data.collections.new(class_path)
+            bpy.context.scene.collection.children.link(class_collection)
+            
+            model_files = glob(join(self.data_dir, self.dataset_name, class_path, '**', '*.obj'), recursive=True)
+            sample_amount = random.randint(self.num_obj_min,self.num_obj_max)#(5, 20)
+            model_files_sample = random.sample(model_files, sample_amount)
+    
+            for i, model_file in enumerate(model_files_sample):
+
+                # Parse path
+                model_file_split = model_file.split('/')
+                model_hash_index = -2
+                if model_file_split[-2] == 'models':
+                    model_hash_index= -3
+
+                # Import
+                bpy.ops.import_scene.obj(filepath=model_file)
+                
+                obj_name = model_file_split[-1].replace('.obj', '')
+                
+                # Init collection
+                # Check if mesh is in collection
+                check_collection = [i for i in bpy.context.scene.collection.objects]
+                # add mesh to correct collection
+                for o in bpy.context.selected_objects:
+                    class_collection.objects.link(o)
+                    
+                    if check_collection:
+                        bpy.context.scene.collection.objects.unlink(o)
+
 
     def render_path(self) -> None:
         # setup correct folder path

@@ -27,6 +27,11 @@ class transform():
         obj.rotation_euler = self.__update_attr__(obj, 'rotation_euler', rng=6)
 
 
+    def scale(self, obj) -> None:
+        rnd_val = self.rand_gen.uniform(-5, 5)
+        obj.scale = type(getattr(obj, 'scale'))([rnd_val, rnd_val, rnd_val])
+
+
     def set_transforms(self, transforms:list) -> None:
         self.transforms.extend(transforms)
 

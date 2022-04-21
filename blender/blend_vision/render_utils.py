@@ -51,7 +51,7 @@ class render():
         for o, label_color in zip(objs, label_colors[:len(objs)]):
             self.label_shader_setup(o, label_color)
 
-    def semantic_label_setup(self, obj_collection, label_color:dict=None, sample_color:bool=False):
+    def semantic_label_setup(self, obj_collection, label_color:dict=None, sample_color:bool=False) -> dict:
         if label_color is None:
             label_color = {'R':0,'B':0,'G':0}
             if sample_color:
@@ -60,6 +60,7 @@ class render():
                                 , 'B':self.rand_gen.uniform(0,1) }
         for o in obj_collection:
             self.label_shader_setup(o, label_color)
+        return label_color
 
     def semantic_label_reset(self, obj_collection):
         self.semantic_label_setup(obj_collection)
