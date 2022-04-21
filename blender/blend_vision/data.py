@@ -16,8 +16,8 @@ class data():
         self.hdri_folder_path = 'hdri'
         self.target_classes = ['camera', 'table', 'car', 'plane']
         self.class_paths = []
-        self.num_obj_min = 5
-        self.num_obj_max = 20
+        self.num_obj_min = 1
+        self.num_obj_max = 2
 
 
     def load_obj_paths(self) -> None:
