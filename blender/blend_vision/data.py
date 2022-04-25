@@ -64,10 +64,11 @@ class data():
                 check_collection = [i for i in bpy.context.scene.collection.objects]
                 # add mesh to correct collection
                 for o in bpy.context.selected_objects:
-                    class_collection.objects.link(o)
-
                     # Should this be called somewhere else?
                     self.apply_transfrom(o, use_rotation=True)
+                    
+                    class_collection.objects.link(o)
+
                     if check_collection:
                         bpy.context.scene.collection.objects.unlink(o)
 
@@ -100,10 +101,6 @@ class data():
             c.matrix_local = M @ c.matrix_local
             
         ob.matrix_basis = basis[0] @ basis[1] @ basis[2]
-
-
-    # test call
-    apply_transfrom(bpy.context.object, use_rotation=True)
 
 
 
