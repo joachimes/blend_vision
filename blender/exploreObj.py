@@ -28,7 +28,7 @@ def main():
     n_img = 10
     camera_target = {'x':0,'y':0,'z':1}
     cam_radius = 4
-    scene_obj = scene(engine='CYCLES', device='GPU')
+    scene_obj = scene()#engine='CYCLES', device='GPU')
     scene_data = data()
     scene_hdri = hdri(os.path.join(scene_data.data_dir, scene_data.hdri_folder_path))
     scene_render = render()
@@ -44,7 +44,14 @@ def main():
     scene_hdri.set_random_hdri()
 
 
+    class_collection = bpy.data.collections.new('Background')
     bpy.ops.mesh.primitive_plane_add(size=50, location=(0,0,-2))
+    check_collection = [o for o in bpy.context.scene.collection.objects]
+    for o in bpy.context.selected_objects:
+        class_collection.objects.link(o)
+        if check_collection:
+            bpy.context.scene.collection.objects.unlink(o)
+
     for obj in bpy.data.collections['Collection'].objects:
         if 'Camera' not in obj.name and 'Light' not in obj.name:
             obj_texture.set_random_material(obj)
@@ -58,7 +65,7 @@ def main():
         scene_hdri.deactivate_hdri()
         # Set transforms and prepare for label pass
         for collection in bpy.data.collections:
-            if collection.name in ['Collection']:
+            if collection.name in ['Collection', 'Background']:
                 continue
             scene_obj.randomize(collection.objects, scene_transform.get_transforms())
             scene_render.semantic_label_reset(collection.objects) #
@@ -75,11 +82,14 @@ def main():
         # cam.location.z = r*math.cos(z)
 
         look_at(cam, camera_target.values())
-        
+
+
+        # Set no material for label image
+        scene_render.semantic_label_reset(bpy.data.collections['Background'].objects) #
         # Render Semantic label pass
         bpy.context.scene.render.image_settings.color_mode = 'BW'
         for collection in bpy.data.collections:
-            if collection.name in ['Collection']:
+            if collection.name in ['Collection', 'Background']:
                 continue
             scene_render.semantic_label_setup(obj_collection=collection.objects, label_color={'R':1.0,'G':1.0, 'B':1.0})
             bpy.context.scene.render.filepath = os.path.join(scene_data.data_dir, 'Generated', 'Semantic_labels', collection.name, img_id + '_' + str(img_num))
