@@ -17,7 +17,8 @@ class scene():
         self.__device = device
         bpy.context.scene.render.engine = engine
         if self.engine == 'CYCLES':
-            bpy.context.scene.cycles.samples = 256
+            bpy.context.scene.cycles.samples = 128
+            bpy.context.scene.render.use_persistent_data = True
             if self.__device is not None:
                 bpy.context.scene.cycles.device = self.__device
 
