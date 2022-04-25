@@ -1,4 +1,6 @@
 import bpy
+from mathutils import Matrix
+
 import random
 from json import load
 from glob import glob
@@ -14,7 +16,7 @@ class data():
         self.json_name = 'shapenetcore.taxonomy.json'
         self.model_name = 'model_normalized.obj'
         self.hdri_folder_path = 'hdri'
-        self.target_classes = ['camera', 'table', 'car', 'plane']
+        self.target_classes = ['camera']#, 'table', 'car', 'plane']
         self.class_paths = []
         self.num_obj_min = 1
         self.num_obj_max = 2
@@ -63,9 +65,46 @@ class data():
                 # add mesh to correct collection
                 for o in bpy.context.selected_objects:
                     class_collection.objects.link(o)
-                    
+
+                    # Should this be called somewhere else?
+                    self.apply_transfrom(o, use_rotation=True)
                     if check_collection:
                         bpy.context.scene.collection.objects.unlink(o)
+
+
+    #https://blender.stackexchange.com/questions/159538/how-to-apply-all-transformations-to-an-object-at-low-level
+    def apply_transfrom(self, ob, use_location=False, use_rotation=False, use_scale=False):
+        mb = ob.matrix_basis
+        I = Matrix()
+        loc, _, scale = mb.decompose()
+
+        # rotation
+        T = Matrix.Translation(loc)
+        R = mb.to_3x3().normalized().to_4x4()
+        S = Matrix.Diagonal(scale).to_4x4()
+
+        transform = [I, I, I]
+        basis = [T, R, S]
+        
+        if use_location:
+            transform[0], basis[0] = basis[0], transform[0]
+        if use_rotation:
+            transform[1], basis[1] = basis[1], transform[1]
+        if use_scale:
+            transform[2], basis[2] = basis[2], transform[2]
+            
+        M = transform[0] @ transform[1] @ transform[2]
+        if hasattr(ob.data, "transform"):
+            ob.data.transform(M)
+        for c in ob.children:
+            c.matrix_local = M @ c.matrix_local
+            
+        ob.matrix_basis = basis[0] @ basis[1] @ basis[2]
+
+
+    # test call
+    apply_transfrom(bpy.context.object, use_rotation=True)
+
 
 
     def render_path(self) -> None:
