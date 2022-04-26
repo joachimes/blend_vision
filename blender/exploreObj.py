@@ -11,7 +11,7 @@ import math
 dir = os.path.dirname(__file__)
 if not dir in sys.path:
     sys.path.append(dir)
-from blend_vision import scene, data, render, transform, composition, hdri, texture
+from blend_vision import scene, data, render, transform, composition, hdri, texture, placement
 
 
 def look_at(obj_camera, point):

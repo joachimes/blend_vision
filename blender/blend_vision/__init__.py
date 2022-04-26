@@ -5,3 +5,4 @@ from .composite import *
 from .transform import *
 from .hdri import *
 from .texture import *
+from .geonode import *

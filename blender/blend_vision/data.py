@@ -16,7 +16,7 @@ class data():
         self.json_name = 'shapenetcore.taxonomy.json'
         self.model_name = 'model_normalized.obj'
         self.hdri_folder_path = 'hdri'
-        self.target_classes = ['camera']#, 'table', 'car', 'plane']
+        self.target_classes = ['camera', 'table', 'car', 'plane']
         self.class_paths = []
         self.num_obj_min = 1
         self.num_obj_max = 2
