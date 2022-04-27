@@ -16,10 +16,11 @@ class data():
         self.json_name = 'shapenetcore.taxonomy.json'
         self.model_name = 'model_normalized.obj'
         self.hdri_folder_path = 'hdri'
-        self.target_classes = ['camera', 'table', 'car', 'plane']
-        self.class_paths = []
-        self.num_obj_min = 1
-        self.num_obj_max = 2
+        self.target_classes = ['camera', 'table', 'lamp', 'car', 'couch']
+        self.hierarchy = {'table':['camera', 'lamp'], 'Background':self.target_classes}
+        self.class_paths = {}
+        self.num_obj_min = 3
+        self.num_obj_max = 6
 
 
     def load_obj_paths(self) -> None:
@@ -30,7 +31,7 @@ class data():
             for target_class in self.target_classes:
                 if target_class in class_obj['metadata']['label'] and exists(join(self.data_dir, self.dataset_name, class_obj['metadata']['name'])):
                     print(class_obj['metadata']['label'], class_obj['metadata']['numInstances'])
-                    self.class_paths += [class_obj['metadata']['name']]
+                    self.class_paths[target_class] = class_obj['metadata']['name']
                 if not exists(join(self.data_dir, self.dataset_name, class_obj['metadata']['name'])):
                     pass
                     # print(f"Data for class {class_obj['metadata']['label']} does not exist")
@@ -41,9 +42,9 @@ class data():
         for class_path in self.class_paths:
             class_collection = bpy.data.collections.new(class_path)
             bpy.context.scene.collection.children.link(class_collection)
-            
-            model_files = glob(join(self.data_dir, self.dataset_name, class_path, '**', '*.obj'), recursive=True)
-            sample_amount = random.randint(self.num_obj_min,self.num_obj_max)#(5, 20)
+
+            model_files = glob(join(self.data_dir, self.dataset_name, self.class_paths[class_path], '**', '*.obj'), recursive=True)
+            sample_amount = random.randint(self.num_obj_min,self.num_obj_max)
             model_files_sample = random.sample(model_files, sample_amount)
     
             for i, model_file in enumerate(model_files_sample):

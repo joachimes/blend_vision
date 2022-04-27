@@ -1,3 +1,4 @@
+from numpy import place
 import bpy
 import mathutils
 import os
@@ -24,11 +25,26 @@ def look_at(obj_camera, point):
     # assume we're using euler rotation
     obj_camera.rotation_euler = rot_quat.to_euler()
 
+
+def update_camera_pos(cam_target, cam_radius):
+    #Update camera position
+    cam = bpy.data.objects['Camera']
+    t_loc_x = cam_target['x']
+    t_loc_y = cam_target['y']
+
+    alpha = random.random()*math.tau
+    cam.location.x = t_loc_x+math.cos(alpha) * cam_radius# * math.sin(z)
+    cam.location.y = t_loc_y+math.sin(alpha) * cam_radius# * math.sin(z)
+    # cam.location.z = r*math.cos(z)
+
+    look_at(cam, cam_target.values())
+
+
 def main():
     n_img = 10
     camera_target = {'x':0,'y':0,'z':1}
-    cam_radius = 4
-    scene_obj = scene()#engine='CYCLES', device='GPU')
+    cam_radius = [4,8]
+    scene_obj = scene(engine='CYCLES', device='GPU')
     scene_data = data()
     scene_hdri = hdri(os.path.join(scene_data.data_dir, scene_data.hdri_folder_path))
     scene_render = render()
@@ -42,19 +58,16 @@ def main():
 
     scene_obj.clean_up()
     scene_hdri.set_random_hdri()
-
+    scene_placement = placement()
 
     class_collection = bpy.data.collections.new('Background')
     bpy.ops.mesh.primitive_plane_add(size=50, location=(0,0,-2))
     check_collection = [o for o in bpy.context.scene.collection.objects]
     for o in bpy.context.selected_objects:
         class_collection.objects.link(o)
+        obj_texture.set_random_material(o)
         if check_collection:
             bpy.context.scene.collection.objects.unlink(o)
-
-    for obj in bpy.data.collections['Collection'].objects:
-        if 'Camera' not in obj.name and 'Light' not in obj.name:
-            obj_texture.set_random_material(obj)
 
 
     scene_data.load_data()
@@ -64,24 +77,21 @@ def main():
     for img_num in range(n_img):
         scene_hdri.deactivate_hdri()
         # Set transforms and prepare for label pass
+        for item in scene_data.hierarchy:
+            pick = False
+            if item == 'Background':
+                pick = True
+            target_collection = bpy.data.collections[item]
+            obj_collections = [bpy.data.collections[obj_col] for obj_col in scene_data.hierarchy[item]]
+            scene_placement.scatter_objs_on_target_collection(target_collection, obj_collections, pick_instance=pick)
         for collection in bpy.data.collections:
             if collection.name in ['Collection', 'Background']:
                 continue
-            scene_obj.randomize(collection.objects, scene_transform.get_transforms())
+            collection.hide_render = True
+            # scene_obj.randomize(collection.objects, scene_transform.get_transforms())
             scene_render.semantic_label_reset(collection.objects) #
-        
 
-        #Update camera position
-        cam = bpy.data.objects['Camera']
-        t_loc_x = camera_target['x']
-        t_loc_y = camera_target['y']
-
-        alpha = random.random()*math.tau
-        cam.location.x = t_loc_x+math.cos(alpha) * cam_radius# * math.sin(z)
-        cam.location.y = t_loc_y+math.sin(alpha) * cam_radius# * math.sin(z)
-        # cam.location.z = r*math.cos(z)
-
-        look_at(cam, camera_target.values())
+        update_camera_pos(camera_target, random.choice(cam_radius))
 
 
         # Set no material for label image
