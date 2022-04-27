@@ -19,8 +19,8 @@ class data():
         self.target_classes = ['camera', 'table', 'lamp', 'car', 'couch']
         self.hierarchy = {'table':['camera', 'lamp'], 'Background':self.target_classes}
         self.class_paths = {}
-        self.num_obj_min = 3
-        self.num_obj_max = 6
+        self.num_obj_min = 5
+        self.num_obj_max = 10
 
 
     def load_obj_paths(self) -> None:
@@ -67,7 +67,7 @@ class data():
                 for o in bpy.context.selected_objects:
                     # Should this be called somewhere else?
                     self.apply_transfrom(o, use_rotation=True)
-                    
+                    o.hide_render = True
                     class_collection.objects.link(o)
 
                     if check_collection:
