@@ -9,7 +9,8 @@ class placement():
                     'GeometryNodeJoinGeometry',
                     'GeometryNodeInputNormal',
                     'GeometryNodeAttributeTransfer',
-                    'FunctionNodeCompare'
+                    'FunctionNodeCompare',
+                    'ShaderNodeSeparateXYZ',
                     'GeometryNodeRealizeInstances']
 
     def setup(self, obj, collections:list, pick_instance:bool=False):
@@ -24,16 +25,16 @@ class placement():
 
         
         # FunctionNodeCompare
-        node_dict['FunctionNodeCompare'].operation = 'GREATER_THAN'
-        node_dict['FunctionNodeCompare'].data_type = 'VECTOR'
-        node_dict['FunctionNodeCompare'].inputs[5].default_value[0] = 0.1
-        node_dict['FunctionNodeCompare'].inputs[5].default_value[1] = 0.1
-        node_dict['FunctionNodeCompare'].inputs[5].default_value[2] = 0.0
+        node_dict['FunctionNodeCompare'].operation = 'GREATER_EQUAL'
+        node_dict['FunctionNodeCompare'].data_type = 'FLOAT'
+        node_dict['FunctionNodeCompare'].inputs['B'].default_value = 0.05
 
         node_dict['GeometryNodeAttributeTransfer'].data_type = 'FLOAT_VECTOR'
         tree.links.new(node_dict['GeometryNodeAttributeTransfer'].inputs['Source'], node_dict['NodeGroupInput'].outputs['Geometry'])
         tree.links.new(node_dict['GeometryNodeAttributeTransfer'].inputs['Attribute'], node_dict['GeometryNodeInputNormal'].outputs['Normal'])
-        tree.links.new(node_dict['FunctionNodeCompare'].inputs['A'], node_dict['GeometryNodeAttributeTransfer'].outputs['Attribute'])
+        tree.links.new(node_dict['ShaderNodeSeparateXYZ'].inputs['Vector'],node_dict['GeometryNodeAttributeTransfer'].outputs['Attribute'])
+        tree.links.new(node_dict['FunctionNodeCompare'].inputs['A'], node_dict['ShaderNodeSeparateXYZ'].outputs['Z'])
+        
 
         node_dict['GeometryNodeDistributePointsOnFaces'].inputs['Distance Min'].default_value = 0.6
         tree.links.new(node_dict['GeometryNodeDistributePointsOnFaces'].inputs['Mesh'], node_dict['NodeGroupInput'].outputs['Geometry'])
