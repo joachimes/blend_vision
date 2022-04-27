@@ -16,7 +16,7 @@ class placement():
                     # 'GeometryNodeRealizeInstances'
                     ]
 
-    def setup(self, obj, collections:list, pick_instance:bool=False):
+    def setup(self, obj, collections:list):
         modifier = None
         if any(geo_node := [mod for mod in obj.modifiers if mod.type == 'NODES']):
             modifier = geo_node[0]
@@ -57,15 +57,15 @@ class placement():
         # Add collection and join
         collection_join = nodes.new('GeometryNodeJoinGeometry')
         for collection in collections:
-            new_collection = nodes.new('GeometryNodeCollectionInfo')
-            new_collection.inputs['Collection'].default_value = collection
-            new_collection.inputs['Separate Children'].default_value = True
-            new_collection.inputs['Reset Children'].default_value = True
-            tree.links.new(collection_join.inputs['Geometry'], new_collection.outputs['Geometry'])
+            for obj_instance in collection.objects:
+                new_object_info = nodes.new('GeometryNodeObjectInfo')
+                new_object_info.inputs['Object'].default_value = obj_instance
+                new_object_info.inputs['As Instance'].default_value = True
+                tree.links.new(collection_join.inputs['Geometry'], new_object_info.outputs['Geometry'])
 
         # Everything going into InstanceOnPoints node
-        if pick_instance:
-            node_dict['GeometryNodeInstanceOnPoints'].inputs['Pick Instance'].default_value = True
+        # if pick_instance:
+        node_dict['GeometryNodeInstanceOnPoints'].inputs['Pick Instance'].default_value = True
         tree.links.new(node_dict['GeometryNodeInstanceOnPoints'].inputs['Instance'], collection_join.outputs['Geometry'])
         tree.links.new(node_dict['GeometryNodeInstanceOnPoints'].inputs['Points'], node_dict['GeometryNodeDistributePointsOnFaces'].outputs['Points'])
         tree.links.new(node_dict['GeometryNodeInstanceOnPoints'].inputs['Rotation'], node_dict['GeometryNodeDistributePointsOnFaces'].outputs['Rotation'])
@@ -84,9 +84,9 @@ class placement():
         tree.links.new(node_dict['GeometryNodeJoinGeometry'].inputs['Geometry'], node_dict['NodeGroupInput'].outputs['Geometry'])
         tree.links.new(node_dict['NodeGroupOutput'].inputs['Geometry'], node_dict['GeometryNodeJoinGeometry'].outputs['Geometry'])
 
-    def scatter_objs_on_target_collection(self, target_collection, objs_collections, pick_instance):
+    def scatter_objs_on_target_collection(self, target_collection, objs_collections):
         for target in target_collection.objects:
-            self.setup(target, objs_collections, pick_instance)
+            self.setup(target, objs_collections)
     
     def shuffle_modifier(self, modifier):
         pass

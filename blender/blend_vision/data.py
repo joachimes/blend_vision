@@ -1,5 +1,5 @@
 import bpy
-from mathutils import Matrix
+from mathutils import Matrix, Vector
 
 import random
 from json import load
@@ -19,8 +19,8 @@ class data():
         self.target_classes = ['camera', 'table', 'lamp', 'car', 'couch']
         self.hierarchy = {'table':['camera', 'lamp'], 'Background':self.target_classes}
         self.class_paths = {}
-        self.num_obj_min = 5
-        self.num_obj_max = 10
+        self.num_obj_min = 1
+        self.num_obj_max = 2
 
 
     def load_obj_paths(self) -> None:
@@ -66,7 +66,9 @@ class data():
                 # add mesh to correct collection
                 for o in bpy.context.selected_objects:
                     # Should this be called somewhere else?
-                    self.apply_transfrom(o, use_rotation=True)
+                    self.move_pivot_to_bottom(o)
+                    self.apply_transfrom(o, use_rotation=True, use_location=True)
+
                     o.hide_render = True
                     class_collection.objects.link(o)
 
@@ -75,8 +77,8 @@ class data():
 
 
     #https://blender.stackexchange.com/questions/159538/how-to-apply-all-transformations-to-an-object-at-low-level
-    def apply_transfrom(self, ob, use_location=False, use_rotation=False, use_scale=False):
-        mb = ob.matrix_basis
+    def apply_transfrom(self, obj, use_location=False, use_rotation=False, use_scale=False):
+        mb = obj.matrix_basis
         I = Matrix()
         loc, _, scale = mb.decompose()
 
@@ -96,13 +98,23 @@ class data():
             transform[2], basis[2] = basis[2], transform[2]
             
         M = transform[0] @ transform[1] @ transform[2]
-        if hasattr(ob.data, "transform"):
-            ob.data.transform(M)
-        for c in ob.children:
+        if hasattr(obj.data, "transform"):
+            obj.data.transform(M)
+        for c in obj.children:
             c.matrix_local = M @ c.matrix_local
             
-        ob.matrix_basis = basis[0] @ basis[1] @ basis[2]
+        obj.matrix_basis = basis[0] @ basis[1] @ basis[2]
 
+
+    def move_pivot_to_bottom(self, obj):
+        m = obj.matrix_world
+
+        lowest = min((m @ v.co)[2] for v in obj.data.vertices)
+        difference = Vector((0,0,obj.location.z - lowest))
+        local_difference = difference @ m
+        for v in obj.data.vertices:
+            v.co += local_difference
+        m.translation -= difference
 
 
     def render_path(self) -> None:

@@ -46,7 +46,7 @@ def main():
 
     camera_target = {'x':0,'y':0,'z':1}
     cam_radius = [4,8]
-    scene_obj = scene(engine='CYCLES', device='GPU')
+    scene_obj = scene()#engine='CYCLES', device='GPU')
     scene_data = data()
     scene_hdri = hdri(os.path.join(scene_data.data_dir, scene_data.hdri_folder_path))
     scene_render = render()
@@ -79,12 +79,9 @@ def main():
             scene_hdri.deactivate_hdri()
             # Set transforms and prepare for label pass
             for item in scene_data.hierarchy:
-                pick = False
-                if item == 'Background':
-                    pick = True
                 target_collection = bpy.data.collections[item]
                 obj_collections = [bpy.data.collections[obj_col] for obj_col in scene_data.hierarchy[item]]
-                scene_placement.scatter_objs_on_target_collection(target_collection, obj_collections, pick_instance=pick)
+                scene_placement.scatter_objs_on_target_collection(target_collection, obj_collections)
             for collection in bpy.data.collections:
                 if collection.name in ['Collection', 'Background']:
                     continue
