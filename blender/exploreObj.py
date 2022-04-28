@@ -12,7 +12,7 @@ import math
 dir = os.path.dirname(__file__)
 if not dir in sys.path:
     sys.path.append(dir)
-from blend_vision import scene, data, render, transform, composition, hdri, texture, placement
+from blend_vision import scene, data, render, composition, hdri, texture, placement
 
 
 def look_at(obj_camera, point):
@@ -35,35 +35,34 @@ def update_camera_pos(cam_target, cam_radius):
     alpha = random.random()*math.tau
     cam.location.x = t_loc_x+math.cos(alpha) * cam_radius# * math.sin(z)
     cam.location.y = t_loc_y+math.sin(alpha) * cam_radius# * math.sin(z)
+    cam.location.z = 1
     # cam.location.z = r*math.cos(z)
 
     look_at(cam, cam_target.values())
 
 
 def main():
-    n_scenes = 20
-    n_img = 1
+    n_scenes = 50
+    n_img = 2
 
-    camera_target = {'x':0,'y':0,'z':1}
-    cam_radius = [4,8]
-    scene_obj = scene()#engine='CYCLES', device='GPU')
+    camera_target = {'x':0,'y':0,'z':0}
+    cam_radius = list(range(1,5))
+    scene_obj = scene(engine='CYCLES', device='GPU')
     scene_data = data()
     scene_hdri = hdri(os.path.join(scene_data.data_dir, scene_data.hdri_folder_path))
     scene_render = render()
-    scene_transform = transform()
-    scene_transform.set_transforms([scene_transform.position, scene_transform.rotation, scene_transform.scale])
     scene_comp = composition()
     obj_texture = texture(os.path.join(scene_data.data_dir, 'textures'))
 
     scene_data.load_obj_paths()
-    # scene_data.render_path()
 
     scene_obj.clean_up()
     scene_placement = placement()
+    semantic_labels = {}
     for scene_id in range(n_scenes):
         scene_hdri.set_random_hdri()
         class_collection = bpy.data.collections.new('Background')
-        bpy.ops.mesh.primitive_plane_add(size=50, location=(0,0,-2))
+        bpy.ops.mesh.primitive_plane_add(size=50, location=(0,0,0))
         check_collection = [o for o in bpy.context.scene.collection.objects]
         for o in bpy.context.selected_objects:
             class_collection.objects.link(o)
@@ -71,26 +70,24 @@ def main():
             if check_collection:
                 bpy.context.scene.collection.objects.unlink(o)
 
-
         scene_data.load_data()
-        semantic_labels = {}
         img_id = str(time.time())
         for img_num in range(n_img):
             scene_hdri.deactivate_hdri()
+
             # Set transforms and prepare for label pass
             for item in scene_data.hierarchy:
                 target_collection = bpy.data.collections[item]
                 obj_collections = [bpy.data.collections[obj_col] for obj_col in scene_data.hierarchy[item]]
                 scene_placement.scatter_objs_on_target_collection(target_collection, obj_collections)
+            
             for collection in bpy.data.collections:
                 if collection.name in ['Collection', 'Background']:
                     continue
-                # scene_obj.randomize(collection.objects, scene_transform.get_transforms())
                 scene_render.semantic_label_reset(collection.objects) #
+                    
 
             update_camera_pos(camera_target, random.choice(cam_radius))
-
-
             # Set no material for label image
             scene_render.semantic_label_reset(bpy.data.collections['Background'].objects) #
             # Render Semantic label pass
@@ -119,8 +116,8 @@ def main():
             scene_render.semantic_label_reset(obj_collection=collection.objects)
 
             # Render instance label pass
-            bpy.context.scene.render.filepath = os.path.join(scene_data.data_dir,'Generated', 'Instance_labels', img_id + '_' + str(scene_id) + '_' + str(img_num))
             scene_render.instance_label_objs(bpy.data.objects)
+            bpy.context.scene.render.filepath = os.path.join(scene_data.data_dir,'Generated', 'Instance_labels', img_id + '_' + str(scene_id) + '_' + str(img_num))
             bpy.ops.render.render(write_still = True)
 
             # Reset shading before final render

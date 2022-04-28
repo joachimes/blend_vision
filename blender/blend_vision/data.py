@@ -16,11 +16,11 @@ class data():
         self.json_name = 'shapenetcore.taxonomy.json'
         self.model_name = 'model_normalized.obj'
         self.hdri_folder_path = 'hdri'
-        self.target_classes = ['camera', 'table', 'lamp', 'car', 'couch']
-        self.hierarchy = {'table':['camera', 'lamp'], 'Background':self.target_classes}
+        self.target_classes = ['camera', 'table', 'lamp', 'couch', 'car']
+        self.hierarchy = {'table':['camera', 'lamp'], 'Background':['table', 'couch', 'car']}#self.target_classes, 'couch':['camera', 'lamp']}
         self.class_paths = {}
-        self.num_obj_min = 1
-        self.num_obj_max = 2
+        self.num_obj_min = 4
+        self.num_obj_max = 6
 
 
     def load_obj_paths(self) -> None:
@@ -47,18 +47,9 @@ class data():
             sample_amount = random.randint(self.num_obj_min,self.num_obj_max)
             model_files_sample = random.sample(model_files, sample_amount)
     
-            for i, model_file in enumerate(model_files_sample):
-
-                # Parse path
-                model_file_split = model_file.split('/')
-                model_hash_index = -2
-                if model_file_split[-2] == 'models':
-                    model_hash_index= -3
-
+            for model_file in model_files_sample:
                 # Import
                 bpy.ops.import_scene.obj(filepath=model_file)
-                
-                obj_name = model_file_split[-1].replace('.obj', '')
                 
                 # Init collection
                 # Check if mesh is in collection
@@ -67,14 +58,17 @@ class data():
                 for o in bpy.context.selected_objects:
                     # Should this be called somewhere else?
                     self.move_pivot_to_bottom(o)
-                    self.apply_transfrom(o, use_rotation=True, use_location=True)
+                    self.apply_rotation(o)
+                    self.move_out_of_frame(o)
 
-                    o.hide_render = True
                     class_collection.objects.link(o)
 
                     if check_collection:
                         bpy.context.scene.collection.objects.unlink(o)
 
+
+    def apply_rotation(self, obj):
+        self.apply_transfrom(obj, use_rotation=True)
 
     #https://blender.stackexchange.com/questions/159538/how-to-apply-all-transformations-to-an-object-at-low-level
     def apply_transfrom(self, obj, use_location=False, use_rotation=False, use_scale=False):
@@ -116,6 +110,9 @@ class data():
             v.co += local_difference
         m.translation -= difference
 
+
+    def move_out_of_frame(self, obj):
+        obj.location = type(obj.location)([0, 0, -100])
 
     def render_path(self) -> None:
         # setup correct folder path

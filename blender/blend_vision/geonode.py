@@ -38,7 +38,7 @@ class placement():
         # FunctionNodeCompare
         node_dict['FunctionNodeCompare'].operation = 'GREATER_EQUAL'
         node_dict['FunctionNodeCompare'].data_type = 'FLOAT'
-        node_dict['FunctionNodeCompare'].inputs['B'].default_value = 0.05
+        node_dict['FunctionNodeCompare'].inputs['B'].default_value = 0.5
 
         node_dict['GeometryNodeAttributeTransfer'].data_type = 'FLOAT_VECTOR'
         tree.links.new(node_dict['GeometryNodeAttributeTransfer'].inputs['Source'], node_dict['NodeGroupInput'].outputs['Geometry'])
@@ -48,8 +48,8 @@ class placement():
         
         # Setup DistributePoints with values
         node_dict['GeometryNodeDistributePointsOnFaces'].distribute_method = 'POISSON'
-        node_dict['GeometryNodeDistributePointsOnFaces'].inputs['Distance Min'].default_value = 0.6
-        node_dict['GeometryNodeDistributePointsOnFaces'].inputs['Density Max'].default_value = 10.0
+        node_dict['GeometryNodeDistributePointsOnFaces'].inputs['Distance Min'].default_value = 0.2
+        node_dict['GeometryNodeDistributePointsOnFaces'].inputs['Density Max'].default_value = 100.0
         tree.links.new(node_dict['GeometryNodeDistributePointsOnFaces'].inputs['Mesh'], node_dict['NodeGroupInput'].outputs['Geometry'])
         tree.links.new(node_dict['GeometryNodeDistributePointsOnFaces'].inputs['Selection'], node_dict['FunctionNodeCompare'].outputs['Result'])
 
@@ -78,8 +78,6 @@ class placement():
         tree.links.new(node_dict['GeometryNodeInstanceOnPoints'].inputs['Scale'], node_dict['ShaderNodeCombineXYZ'].outputs['Vector'])
         
         # Join InstanceOnPoint geometry with original geometry
-        # tree.links.new(node_dict['GeometryNodeRealizeInstances'].inputs['Geometry'], node_dict['GeometryNodeInstanceOnPoints'].outputs['Instances'])
-        # tree.links.new(node_dict['GeometryNodeJoinGeometry'].inputs['Geometry'], node_dict['GeometryNodeRealizeInstances'].outputs['Geometry'])
         tree.links.new(node_dict['GeometryNodeJoinGeometry'].inputs['Geometry'], node_dict['GeometryNodeInstanceOnPoints'].outputs['Instances'])
         tree.links.new(node_dict['GeometryNodeJoinGeometry'].inputs['Geometry'], node_dict['NodeGroupInput'].outputs['Geometry'])
         tree.links.new(node_dict['NodeGroupOutput'].inputs['Geometry'], node_dict['GeometryNodeJoinGeometry'].outputs['Geometry'])
