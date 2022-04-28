@@ -19,8 +19,8 @@ class data():
         self.target_classes = ['camera', 'table', 'lamp', 'couch', 'car']
         self.hierarchy = {'table':['camera', 'lamp'], 'Background':['table', 'couch', 'car']}#self.target_classes, 'couch':['camera', 'lamp']}
         self.class_paths = {}
-        self.num_obj_min = 4
-        self.num_obj_max = 6
+        self.num_obj_min = 10
+        self.num_obj_max = 15
 
 
     def load_obj_paths(self) -> None:

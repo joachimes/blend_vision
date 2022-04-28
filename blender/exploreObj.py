@@ -43,7 +43,7 @@ def update_camera_pos(cam_target, cam_radius):
 
 def main():
     n_scenes = 50
-    n_img = 2
+    n_img = 10
 
     camera_target = {'x':0,'y':0,'z':0}
     cam_radius = list(range(1,5))

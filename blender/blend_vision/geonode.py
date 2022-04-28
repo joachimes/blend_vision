@@ -13,7 +13,7 @@ class placement():
                     'FunctionNodeCompare',
                     'ShaderNodeSeparateXYZ',
                     'ShaderNodeCombineXYZ',
-                    # 'GeometryNodeRealizeInstances'
+                    'FunctionNodeRotateEuler'
                     ]
 
     def setup(self, obj, collections:list):
@@ -34,6 +34,14 @@ class placement():
         for node in self.node_types:
             node_dict[node] = nodes.new(node)
 
+        # Add collection to join node - Goes into InstanceOnPoints
+        collection_join = nodes.new('GeometryNodeJoinGeometry')
+        for collection in collections:
+            for obj_instance in collection.objects:
+                new_object_info = nodes.new('GeometryNodeObjectInfo')
+                new_object_info.inputs['Object'].default_value = obj_instance
+                new_object_info.inputs['As Instance'].default_value = True
+                tree.links.new(collection_join.inputs['Geometry'], new_object_info.outputs['Geometry'])
         
         # FunctionNodeCompare
         node_dict['FunctionNodeCompare'].operation = 'GREATER_EQUAL'
@@ -54,28 +62,33 @@ class placement():
         tree.links.new(node_dict['GeometryNodeDistributePointsOnFaces'].inputs['Selection'], node_dict['FunctionNodeCompare'].outputs['Result'])
 
 
-        # Add collection and join
-        collection_join = nodes.new('GeometryNodeJoinGeometry')
-        for collection in collections:
-            for obj_instance in collection.objects:
-                new_object_info = nodes.new('GeometryNodeObjectInfo')
-                new_object_info.inputs['Object'].default_value = obj_instance
-                new_object_info.inputs['As Instance'].default_value = True
-                tree.links.new(collection_join.inputs['Geometry'], new_object_info.outputs['Geometry'])
 
-        # Everything going into InstanceOnPoints node
-        # if pick_instance:
-        node_dict['GeometryNodeInstanceOnPoints'].inputs['Pick Instance'].default_value = True
-        tree.links.new(node_dict['GeometryNodeInstanceOnPoints'].inputs['Instance'], collection_join.outputs['Geometry'])
-        tree.links.new(node_dict['GeometryNodeInstanceOnPoints'].inputs['Points'], node_dict['GeometryNodeDistributePointsOnFaces'].outputs['Points'])
-        tree.links.new(node_dict['GeometryNodeInstanceOnPoints'].inputs['Rotation'], node_dict['GeometryNodeDistributePointsOnFaces'].outputs['Rotation'])
+        # Random rotation of instances on Z axis by tau
+        tree.links.new(node_dict['FunctionNodeRotateEuler'].inputs['Rotation'], node_dict['GeometryNodeDistributePointsOnFaces'].outputs['Rotation'])
+        tree.links.new(node_dict['FunctionNodeRotateEuler'].inputs['Rotation'], node_dict['GeometryNodeDistributePointsOnFaces'].outputs['Rotation'])
+        random_rotation = nodes.new('FunctionNodeRandomValue')
+        random_rotation.data_type = 'FLOAT_VECTOR'
+        random_rotation.inputs['Min'].default_value[0] = 0.0
+        random_rotation.inputs['Min'].default_value[1] = 0.0
+        random_rotation.inputs['Min'].default_value[2] = 0.0
+        random_rotation.inputs['Max'].default_value[0] = 0.0
+        random_rotation.inputs['Max'].default_value[1] = 0.0
+        random_rotation.inputs['Max'].default_value[2] = 6.28319 # Z Axis
+        tree.links.new(node_dict['FunctionNodeRotateEuler'].inputs['Rotate By'], random_rotation.outputs['Value'])
         
+        # Random uniform scaling
         node_dict['FunctionNodeRandomValue'].data_type = 'FLOAT_VECTOR'
         node_dict['FunctionNodeRandomValue'].inputs['Min'].default_value[0] = 0.01
         node_dict['FunctionNodeRandomValue'].inputs['Max'].default_value[0] = 0.04
         for combine_input in node_dict['ShaderNodeCombineXYZ'].inputs:
             tree.links.new(combine_input, node_dict['FunctionNodeRandomValue'].outputs['Value'])
+        
+        # Everything going into InstanceOnPoints node
+        tree.links.new(node_dict['GeometryNodeInstanceOnPoints'].inputs['Instance'], collection_join.outputs['Geometry'])
+        tree.links.new(node_dict['GeometryNodeInstanceOnPoints'].inputs['Points'], node_dict['GeometryNodeDistributePointsOnFaces'].outputs['Points'])
+        tree.links.new(node_dict['GeometryNodeInstanceOnPoints'].inputs['Rotation'], node_dict['FunctionNodeRotateEuler'].outputs['Rotation'])
         tree.links.new(node_dict['GeometryNodeInstanceOnPoints'].inputs['Scale'], node_dict['ShaderNodeCombineXYZ'].outputs['Vector'])
+        node_dict['GeometryNodeInstanceOnPoints'].inputs['Pick Instance'].default_value = True
         
         # Join InstanceOnPoint geometry with original geometry
         tree.links.new(node_dict['GeometryNodeJoinGeometry'].inputs['Geometry'], node_dict['GeometryNodeInstanceOnPoints'].outputs['Instances'])

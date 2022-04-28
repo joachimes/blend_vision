@@ -11,6 +11,7 @@ class render():
         if rnd_seed is None:
             seed(time())
         self.rand_gen = Random()
+        self.label_samples = 1
         self.render_samples = bpy.context.scene.eevee.taa_render_samples
 
     
@@ -43,7 +44,7 @@ class render():
 
     def instance_label_objs(self, objs, label_colors:list[dict]=[]) -> None:
         bpy.context.scene.render.engine = 'BLENDER_EEVEE'
-        bpy.context.scene.eevee.taa_render_samples = 2
+        bpy.context.scene.eevee.taa_render_samples = self.label_samples
 
         if len(objs) - len(label_colors) > 0:
             for i in range(len(objs) - len(label_colors)):
@@ -56,7 +57,7 @@ class render():
 
     def semantic_label_setup(self, obj_collection, label_color:dict=None, sample_color:bool=False) -> dict:
         bpy.context.scene.render.engine = 'BLENDER_EEVEE'
-        bpy.context.scene.eevee.taa_render_samples = 2
+        bpy.context.scene.eevee.taa_render_samples = self.label_samples
 
         if label_color is None:
             label_color = {'R':0,'B':0,'G':0}
