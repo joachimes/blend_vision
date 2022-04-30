@@ -2,3 +2,4 @@ data/*
 *.blend1
 __pycache__/
 blender/exploration\ copy.blend
+jobs/
