@@ -11,6 +11,8 @@ class render():
         if rnd_seed is None:
             seed(time())
         self.rand_gen = Random()
+        self.label_samples = 1
+        self.render_samples = bpy.context.scene.eevee.taa_render_samples
 
     
     def link_nodes(self, o_node_tree, input_node, output_node, input_node_target:str, output_node_target:str='Surface') -> None:
@@ -42,6 +44,8 @@ class render():
 
     def instance_label_objs(self, objs, label_colors:list[dict]=[]) -> None:
         bpy.context.scene.render.engine = 'BLENDER_EEVEE'
+        bpy.context.scene.eevee.taa_render_samples = self.label_samples
+
         if len(objs) - len(label_colors) > 0:
             for i in range(len(objs) - len(label_colors)):
                 label_colors.append({ 'R':self.rand_gen.uniform(0,1)
@@ -52,6 +56,9 @@ class render():
             self.label_shader_setup(o, label_color)
 
     def semantic_label_setup(self, obj_collection, label_color:dict=None, sample_color:bool=False) -> dict:
+        bpy.context.scene.render.engine = 'BLENDER_EEVEE'
+        bpy.context.scene.eevee.taa_render_samples = self.label_samples
+
         if label_color is None:
             label_color = {'R':0,'B':0,'G':0}
             if sample_color:
@@ -65,16 +72,11 @@ class render():
     def semantic_label_reset(self, obj_collection):
         self.semantic_label_setup(obj_collection)
 
-    # obj_dict = {'object':obj, 'label_color':dict}
-    # label_color = {'R':float, 'B':float, 'G':float}
-    def instance_segmentation_setup(self, scene_objs:list[dict]):
-        bpy.context.scene.render.engine = 'BLENDER_EEVEE'
-        for obj_dict in scene_objs:
-            self.label_shader_setup(obj_dict['object'], obj_dict['label_color'])
-
-        
 
     def segmentation_reset(self, objs:list, scene:scene):
         bpy.context.scene.render.engine = scene.engine
+        if scene.engine == 'BLENDER_EEVEE':
+            bpy.context.scene.eevee.taa_render_samples = self.render_samples
+            
         for o in objs:
             self.label_shader_reset(o)
