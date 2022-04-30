@@ -1,4 +1,3 @@
-from numpy import place
 import bpy
 import mathutils
 import os
@@ -7,39 +6,11 @@ import json
 import sys
 import random
 import time
-import math
 
 dir = os.path.dirname(__file__)
 if not dir in sys.path:
     sys.path.append(dir)
-from blend_vision import scene, data, render, composition, hdri, texture, placement
-
-
-def look_at(obj_camera, point):
-    loc_camera = obj_camera.location#obj_camera.matrix_world.to_translation()
-
-    direction = mathutils.Vector(point) - loc_camera
-    # point the cameras '-Z' and use its 'Y' as up
-    rot_quat = direction.to_track_quat('-Z', 'Y')
-
-    # assume we're using euler rotation
-    obj_camera.rotation_euler = rot_quat.to_euler()
-
-
-def update_camera_pos(cam_target, cam_radius):
-    #Update camera position
-    cam = bpy.data.objects['Camera']
-    t_loc_x = cam_target['x']
-    t_loc_y = cam_target['y']
-
-    alpha = random.random()*math.tau
-    cam.location.x = t_loc_x+math.cos(alpha) * cam_radius# * math.sin(z)
-    cam.location.y = t_loc_y+math.sin(alpha) * cam_radius# * math.sin(z)
-    cam.location.z = 1
-    # cam.location.z = r*math.cos(z)
-
-    look_at(cam, cam_target.values())
-
+from blend_vision import scene, data, render, composition, hdri, texture, placement, camera
 
 def main():
     n_scenes = 50
@@ -47,14 +18,30 @@ def main():
 
     camera_target = {'x':0,'y':0,'z':0}
     cam_radius = list(range(1,5))
+
+    data_dict = {"data_dir": '../data',
+                "dataset_name": 'ShapeNetCore.v2',
+                "json_name": 'shapenetcore.taxonomy.json',
+                "model_name": 'model_normalized.obj',
+                "hdri_folder_path": 'hdri',
+                "target_classes": ['camera', 'table', 'lamp', 'couch', 'car'],
+                "hierarchy": {'table':['camera', 'lamp'], 'Background':['table', 'couch', 'car']},
+                "class_paths": {},
+                "num_obj_min": 10,
+                "num_obj_max": 15,
+                }
+    
+    scene_data = data(data_dict)
     scene_obj = scene(engine='CYCLES', device='GPU')
-    scene_data = data()
     scene_hdri = hdri(os.path.join(scene_data.data_dir, scene_data.hdri_folder_path))
     scene_render = render()
     scene_comp = composition()
+    scene_camera = camera()
     obj_texture = texture(os.path.join(scene_data.data_dir, 'textures'))
 
     scene_data.load_obj_paths()
+
+    target_folder = 'Generated'
 
     scene_obj.clean_up()
     scene_placement = placement()
@@ -87,7 +74,7 @@ def main():
                 scene_render.semantic_label_reset(collection.objects) #
                     
 
-            update_camera_pos(camera_target, random.choice(cam_radius))
+            scene_camera.update_camera_pos(camera_target, random.choice(cam_radius))
             # Set no material for label image
             scene_render.semantic_label_reset(bpy.data.collections['Background'].objects) #
             # Render Semantic label pass
@@ -96,7 +83,7 @@ def main():
                 if collection.name in ['Collection', 'Background']:
                     continue
                 scene_render.semantic_label_setup(obj_collection=collection.objects, label_color={'R':1.0,'G':1.0, 'B':1.0})
-                bpy.context.scene.render.filepath = os.path.join(scene_data.data_dir, 'Generated', 'Semantic_labels', collection.name, img_id + '_' + str(scene_id) + '_' + str(img_num))
+                bpy.context.scene.render.filepath = os.path.join(scene_data.data_dir, target_folder, 'Semantic_labels', collection.name, img_id + '_' + str(scene_id) + '_' + str(img_num))
                 bpy.ops.render.render(write_still = True)
                 scene_render.semantic_label_reset(obj_collection=collection.objects)
             bpy.context.scene.render.image_settings.color_mode = 'RGB'
@@ -111,13 +98,13 @@ def main():
                 else:
                     semantic_color = scene_render.semantic_label_setup(obj_collection=collection.objects, sample_color=True)
                     semantic_labels[collection.name] = semantic_color
-            bpy.context.scene.render.filepath = os.path.join(scene_data.data_dir, 'Generated', 'Semantic_labels', img_id + '_' + str(scene_id) + '_' + str(img_num))
+            bpy.context.scene.render.filepath = os.path.join(scene_data.data_dir, target_folder, 'Semantic_labels', img_id + '_' + str(scene_id) + '_' + str(img_num))
             bpy.ops.render.render(write_still = True)
             scene_render.semantic_label_reset(obj_collection=collection.objects)
 
             # Render instance label pass
             scene_render.instance_label_objs(bpy.data.objects)
-            bpy.context.scene.render.filepath = os.path.join(scene_data.data_dir,'Generated', 'Instance_labels', img_id + '_' + str(scene_id) + '_' + str(img_num))
+            bpy.context.scene.render.filepath = os.path.join(scene_data.data_dir, target_folder, 'Instance_labels', img_id + '_' + str(scene_id) + '_' + str(img_num))
             bpy.ops.render.render(write_still = True)
 
             # Reset shading before final render
@@ -127,7 +114,7 @@ def main():
 
             # Render final pass
             scene_comp.composition_setup()
-            bpy.context.scene.render.filepath = os.path.join(scene_data.data_dir, 'Generated', 'Renders', img_id + '_' + str(scene_id) + '_' + str(img_num))
+            bpy.context.scene.render.filepath = os.path.join(scene_data.data_dir, target_folder, 'Renders', img_id + '_' + str(scene_id) + '_' + str(img_num))
             bpy.ops.render.render(write_still = True)
             scene_comp.composition_reset()
 
