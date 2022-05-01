@@ -76,21 +76,22 @@ def main():
             for collection in bpy.data.collections:
                 if collection.name in ['Collection', 'Background']:
                     continue
-                scene_render.semantic_label_reset(collection.objects) #
+                scene_render.black_semantic_label(collection.objects) #
                     
 
             scene_camera.update_camera_pos(scene_data.camera_target, random.choice(scene_data.cam_radius))
             # Set no material for label image
-            scene_render.semantic_label_reset(bpy.data.collections['Background'].objects) #
+            scene_render.black_semantic_label(bpy.data.collections['Background'].objects) #
             # Render Semantic label pass
             bpy.context.scene.render.image_settings.color_mode = 'BW'
+            scene_comp.label_shading_render()
             for collection in bpy.data.collections:
                 if collection.name in ['Collection', 'Background']:
                     continue
                 scene_render.semantic_label_setup(obj_collection=collection.objects, label_color={'R':1.0,'G':1.0, 'B':1.0})
                 bpy.context.scene.render.filepath = os.path.join(scene_data.data_dir, target_folder, 'Semantic_labels', collection.name, img_id + '_' + str(scene_id) + '_' + str(img_num))
                 bpy.ops.render.render(write_still = True)
-                scene_render.semantic_label_reset(obj_collection=collection.objects)
+                scene_render.black_semantic_label(obj_collection=collection.objects)
             bpy.context.scene.render.image_settings.color_mode = 'RGB'
 
 
@@ -105,7 +106,7 @@ def main():
                     semantic_labels[collection.name] = semantic_color
             bpy.context.scene.render.filepath = os.path.join(scene_data.data_dir, target_folder, 'Semantic_labels', img_id + '_' + str(scene_id) + '_' + str(img_num))
             bpy.ops.render.render(write_still = True)
-            scene_render.semantic_label_reset(obj_collection=collection.objects)
+            scene_render.black_semantic_label(obj_collection=collection.objects)
 
             # Render instance label pass
             scene_render.instance_label_objs(bpy.data.objects)
@@ -118,7 +119,7 @@ def main():
 
 
             # Render final pass
-            scene_comp.composition_setup()
+            scene_comp.normal_depth_render()
             bpy.context.scene.render.filepath = os.path.join(scene_data.data_dir, target_folder, 'Renders', img_id + '_' + str(scene_id) + '_' + str(img_num))
             bpy.ops.render.render(write_still = True)
             scene_comp.composition_reset()
