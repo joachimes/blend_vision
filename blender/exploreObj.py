@@ -13,26 +13,28 @@ if not dir in sys.path:
 from blend_vision import scene, data, render, composition, hdri, texture, placement, camera
 
 def main():
-    n_scenes = 50
-    n_img = 10
-
-    camera_target = {'x':0,'y':0,'z':0}
-    cam_radius = list(range(1,5))
-
-    data_dict = {"data_dir": '../data',
+    # Rendering n_scenes * n_img
+    data_dict = {"data_dir": os.path.join(os.path.dirname(__file__), '..', 'data'),
                 "dataset_name": 'ShapeNetCore.v2',
                 "json_name": 'shapenetcore.taxonomy.json',
                 "model_name": 'model_normalized.obj',
                 "hdri_folder_path": 'hdri',
+                "render_folder": 'Generated',
                 "target_classes": ['camera', 'table', 'lamp', 'couch', 'car'],
                 "hierarchy": {'table':['camera', 'lamp'], 'Background':['table', 'couch', 'car']},
                 "class_paths": {},
                 "num_obj_min": 10,
                 "num_obj_max": 15,
+                "engine": 'CYCLES',
+                "device": 'GPU',
+                "camera_target": {'x':0,'y':0,'z':0},
+                "cam_radius": list(range(1,5)),
+                "n_scenes": 50,
+                "n_img": 10
                 }
     
     scene_data = data(data_dict)
-    scene_obj = scene(engine='CYCLES', device='GPU')
+    scene_obj = scene(engine=scene_data.engine, device=scene_data.device)
     scene_hdri = hdri(os.path.join(scene_data.data_dir, scene_data.hdri_folder_path))
     scene_render = render()
     scene_comp = composition()
@@ -41,13 +43,12 @@ def main():
 
     scene_data.load_obj_paths()
 
-    target_folder = 'Generated'
+    target_folder = scene_data.render_folder
 
     scene_obj.clean_up()
     scene_placement = placement()
     semantic_labels = {}
-    for scene_id in range(n_scenes):
-        scene_hdri.set_random_hdri()
+    for scene_id in range(scene_data.n_scenes):
         class_collection = bpy.data.collections.new('Background')
         bpy.ops.mesh.primitive_plane_add(size=50, location=(0,0,0))
         check_collection = [o for o in bpy.context.scene.collection.objects]
@@ -57,9 +58,10 @@ def main():
             if check_collection:
                 bpy.context.scene.collection.objects.unlink(o)
 
+        scene_hdri.set_random_hdri()
         scene_data.load_data()
         img_id = str(time.time())
-        for img_num in range(n_img):
+        for img_num in range(scene_data.n_img):
             scene_hdri.deactivate_hdri()
 
             # Set transforms and prepare for label pass
@@ -74,7 +76,7 @@ def main():
                 scene_render.semantic_label_reset(collection.objects) #
                     
 
-            scene_camera.update_camera_pos(camera_target, random.choice(cam_radius))
+            scene_camera.update_camera_pos(scene_data.camera_target, random.choice(scene_data.cam_radius))
             # Set no material for label image
             scene_render.semantic_label_reset(bpy.data.collections['Background'].objects) #
             # Render Semantic label pass

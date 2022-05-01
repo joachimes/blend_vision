@@ -11,16 +11,8 @@ from os.path import join, exists
 class data():
     def __init__(self, data_dict) -> None:
         # Read yaml file and extract data
-        self.data_dir = './data'
-        self.dataset_name = 'ShapeNetCore.v2'
-        self.json_name = 'shapenetcore.taxonomy.json'
-        self.model_name = 'model_normalized.obj'
-        self.hdri_folder_path = 'hdri'
-        self.target_classes = ['camera', 'table', 'lamp', 'couch', 'car']
-        self.hierarchy = {'table':['camera', 'lamp'], 'Background':['table', 'couch', 'car']}#self.target_classes, 'couch':['camera', 'lamp']}
-        self.class_paths = {}
-        self.num_obj_min = 10
-        self.num_obj_max = 15
+        for key in data_dict:
+            setattr(self, key, data_dict[key])
 
 
     def load_obj_paths(self) -> None:
@@ -28,13 +20,14 @@ class data():
             dataset_json = load(f)
         
         for class_obj in dataset_json:
+            if not exists(join(self.data_dir, self.dataset_name, class_obj['metadata']['name'])):
+                print(f"Data for class {class_obj['metadata']['label']} does not exist")
+                continue
             for target_class in self.target_classes:
                 if target_class in class_obj['metadata']['label'] and exists(join(self.data_dir, self.dataset_name, class_obj['metadata']['name'])):
                     print(class_obj['metadata']['label'], class_obj['metadata']['numInstances'])
                     self.class_paths[target_class] = class_obj['metadata']['name']
-                if not exists(join(self.data_dir, self.dataset_name, class_obj['metadata']['name'])):
-                    pass
-                    # print(f"Data for class {class_obj['metadata']['label']} does not exist")
+                    
         
     
 
