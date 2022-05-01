@@ -25,8 +25,6 @@ class texture():
         mat.node_tree.links.new(mapping.inputs['Vector'], tex_coord.outputs['UV'])
 
         # Read each img and connect tex to correct socket
-        print(os.path.join(__file__, '..'))
-
         for path in os.listdir(texPath):
             path_type = path[len(base_name):len(base_name)+3]
             new_img_node = mat.node_tree.nodes.new('ShaderNodeTexImage')

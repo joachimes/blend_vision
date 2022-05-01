@@ -23,8 +23,8 @@ def main():
                 "target_classes": ['camera', 'table', 'lamp', 'couch', 'car'],
                 "hierarchy": {'table':['camera', 'lamp'], 'Background':['table', 'couch', 'car']},
                 "class_paths": {},
-                "num_obj_min": 10,
-                "num_obj_max": 15,
+                "num_obj_min": 1,
+                "num_obj_max": 2,
                 "engine": 'CYCLES',
                 "device": 'GPU',
                 "camera_target": {'x':0,'y':0,'z':0},
@@ -32,6 +32,8 @@ def main():
                 "n_scenes": 50,
                 "n_img": 10
                 }
+    
+    scene_param_dict = {}
     
     scene_data = data(data_dict)
     scene_obj = scene(engine=scene_data.engine, device=scene_data.device)
@@ -66,9 +68,10 @@ def main():
 
             # Set transforms and prepare for label pass
             for item in scene_data.hierarchy:
-                target_collection = bpy.data.collections[item]
-                obj_collections = [bpy.data.collections[obj_col] for obj_col in scene_data.hierarchy[item]]
-                scene_placement.scatter_objs_on_target_collection(target_collection, obj_collections)
+                if item in bpy.data.collections:
+                    target_collection = bpy.data.collections[item]
+                    obj_collections = [bpy.data.collections[obj_col] for obj_col in scene_data.hierarchy[item] if obj_col in bpy.data.collections]
+                    scene_placement.scatter_objs_on_target_collection(target_collection, obj_collections)
             
             for collection in bpy.data.collections:
                 if collection.name in ['Collection', 'Background']:
