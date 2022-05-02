@@ -20,19 +20,21 @@ def main():
                 "model_name": 'model_normalized.obj',
                 "hdri_folder_path": 'hdri',
                 "render_folder": 'Generated',
-                "target_classes": ['camera', 'table', 'lamp', 'couch', 'car'],
-                "hierarchy": {'table':['camera', 'lamp'], 'Background':['table', 'couch', 'car']},
+                "target_classes": ['airplane', 'wastebin', 'suitcase', 'handbasket', 'bench', 'bottle', 'autobus', 'tin can', 'automobile', 'spigot', 'lamp', 'mailbox', 'motorcycle', 'flowerpot', 'tower', 'train'],
+                "hierarchy": {'Background':['airplane', 'wastebin', 'suitcase', 'handbasket', 'bench', 'bottle', 'autobus', 'tin can', 'automobile', 'spigot', 'lamp', 'mailbox', 'motorcycle', 'flowerpot', 'tower', 'train']},
                 "class_paths": {},
-                "num_obj_min": 1,
-                "num_obj_max": 2,
+                "num_obj_min": 0,
+                "num_obj_max": 15,
                 "engine": 'CYCLES',
                 "device": 'GPU',
                 "camera_target": {'x':0,'y':0,'z':0},
                 "cam_radius": list(range(1,5)),
-                "n_scenes": 50,
+                "n_scenes": 500,
                 "n_img": 10
                 }
     
+    target_class = "automobile"
+
     scene_param_dict = {}
     
     scene_data = data(data_dict)
@@ -86,7 +88,9 @@ def main():
             bpy.context.scene.render.image_settings.color_mode = 'BW'
             scene_comp.label_shading_render()
             for collection in bpy.data.collections:
-                if collection.name in ['Collection', 'Background']:
+                # if collection.name in ['Collection', 'Background']:
+                    # continue
+                if collection.name not in [target_class]:
                     continue
                 scene_render.semantic_label_setup(obj_collection=collection.objects, label_color={'R':1.0,'G':1.0, 'B':1.0})
                 bpy.context.scene.render.filepath = os.path.join(scene_data.data_dir, target_folder, 'Semantic_labels', collection.name, img_id + '_' + str(scene_id) + '_' + str(img_num))

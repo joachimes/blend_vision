@@ -56,7 +56,7 @@ class placement():
         
         # Setup DistributePoints with values
         node_dict['GeometryNodeDistributePointsOnFaces'].distribute_method = 'POISSON'
-        node_dict['GeometryNodeDistributePointsOnFaces'].inputs['Distance Min'].default_value = 0.2
+        node_dict['GeometryNodeDistributePointsOnFaces'].inputs['Distance Min'].default_value = 0.5
         node_dict['GeometryNodeDistributePointsOnFaces'].inputs['Density Max'].default_value = 100.0
         tree.links.new(node_dict['GeometryNodeDistributePointsOnFaces'].inputs['Mesh'], node_dict['NodeGroupInput'].outputs['Geometry'])
         tree.links.new(node_dict['GeometryNodeDistributePointsOnFaces'].inputs['Selection'], node_dict['FunctionNodeCompare'].outputs['Result'])
