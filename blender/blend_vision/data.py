@@ -21,7 +21,7 @@ class data():
         
         for class_obj in dataset_json:
             if not exists(join(self.data_dir, self.dataset_name, class_obj['metadata']['name'])):
-                print(f"Data for class {class_obj['metadata']['label']} does not exist")
+                # print(f"Data for class {class_obj['metadata']['label']} does not exist")
                 continue
             for target_class in self.target_classes:
                 if target_class in class_obj['metadata']['label'] and exists(join(self.data_dir, self.dataset_name, class_obj['metadata']['name'])):
