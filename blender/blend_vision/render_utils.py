@@ -55,8 +55,16 @@ class render():
     def label_shader_setup(self, o, color:dict) -> None:
         for material_slot in o.material_slots:
             node_tree = material_slot.material.node_tree
-            combine_rgb_node = node_tree.nodes.new('ShaderNodeCombineRGB')
-            diffuse_bsdf_node = node_tree.nodes.new('ShaderNodeBsdfDiffuse')
+            combine_rgb_node = None
+            if 'Combine RGB' not in node_tree.nodes:
+                combine_rgb_node = node_tree.nodes.new('ShaderNodeCombineRGB')
+            else:
+                combine_rgb_node = node_tree.nodes['Combine RGB']
+            if 'Diffuse BSDF' not in node_tree.nodes:
+                diffuse_bsdf_node = node_tree.nodes.new('ShaderNodeBsdfDiffuse')
+            else:
+                diffuse_bsdf_node = node_tree.nodes['Diffuse BSDF']
+
 
             node_tree.links.new(diffuse_bsdf_node.inputs['Color'], combine_rgb_node.outputs["Image"])
             node_tree.links.new(node_tree.nodes['Material Output'].inputs['Surface'], diffuse_bsdf_node.outputs['BSDF'])
