@@ -26,7 +26,7 @@ def main():
                 'num_obj_min': 0,
                 'num_obj_max': 15,
                 'n_scenes': 500,
-                'n_img': 10
+                'n_img': 100
                 }
     render_param_dict = {'render_folder':'Generated','labels':['instance', 'semantic', 'normal', 'depth'], 'semantic':['automobile'], 'semantic_label_colors':{}}
 
@@ -62,16 +62,16 @@ def main():
         check_collection = [o for o in bpy.context.scene.collection.objects]
         for o in bpy.context.selected_objects:
             class_collection.objects.link(o)
-            obj_texture.set_random_material(o)
             if check_collection:
                 bpy.context.scene.collection.objects.unlink(o)
 
-        scene_hdri.set_random_hdri()
         scene_data.load_data()
         img_id = str(time.time())
         for img_num in range(scene_data.n_img):
             img_name = img_id + '_' + str(scene_id) + '_' + str(img_num)
             
+            for o in bpy.data.collections['Background'].objects:
+                obj_texture.set_random_material(o)
             # Set transforms
             for item in scene_param_dict['hierarchy']:
                 if item in bpy.data.collections:
@@ -79,6 +79,7 @@ def main():
                     obj_collections = [bpy.data.collections[obj_col] for obj_col in scene_param_dict['hierarchy'][item] if obj_col in bpy.data.collections]
                     scene_placement.scatter_objs_on_target_collection(target_collection, obj_collections)
             
+            scene_hdri.set_random_hdri()
             scene_hdri.deactivate_hdri()
             scene_camera.update_camera_pos(scene_data.camera_target, random.choice(scene_param_dict['cam_radius']))
                     

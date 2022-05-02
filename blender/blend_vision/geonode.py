@@ -1,6 +1,4 @@
-from ctypes.wintypes import tagRECT
-import bpy
-import time
+import random
 
 class placement():
     def __init__(self) -> None:
@@ -74,12 +72,15 @@ class placement():
         random_rotation.inputs['Max'].default_value[0] = 0.0
         random_rotation.inputs['Max'].default_value[1] = 0.0
         random_rotation.inputs['Max'].default_value[2] = 6.28319 # Z Axis
+        random_rotation.inputs['Seed'].default_value = random.randint(0, 10000)
         tree.links.new(node_dict['FunctionNodeRotateEuler'].inputs['Rotate By'], random_rotation.outputs['Value'])
         
         # Random uniform scaling
         node_dict['FunctionNodeRandomValue'].data_type = 'FLOAT_VECTOR'
         node_dict['FunctionNodeRandomValue'].inputs['Min'].default_value[0] = 0.01
         node_dict['FunctionNodeRandomValue'].inputs['Max'].default_value[0] = 0.04
+        node_dict['FunctionNodeRandomValue'].inputs['Seed'].default_value = random.randint(0, 10000)
+
         for combine_input in node_dict['ShaderNodeCombineXYZ'].inputs:
             tree.links.new(combine_input, node_dict['FunctionNodeRandomValue'].outputs['Value'])
         
@@ -100,6 +101,13 @@ class placement():
             self.setup(target, objs_collections)
     
     def shuffle_modifier(self, modifier):
-        pass
+        tree = modifier.node_group
+        nodes = tree.nodes
+        nodes['Distribute Points on Faces'].inputs['Seed'].default_value = random.randint(0, 10000)
+        nodes['Distribute Points on Faces'].inputs['Distance Min'].default_value = random.uniform(0.3, 0.5)
+        for node in nodes:
+            if 'Random' in node.name:
+                node.inputs['Seed'].default_value = random.randint(0, 10000)
+                
 
 

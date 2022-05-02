@@ -3,8 +3,6 @@ import os
 from time import time
 from random import Random, seed
 
-from .scene import scene
-
 
 class render():
     def __init__(self, target_dir, rnd_seed=None) -> None:
