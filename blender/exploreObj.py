@@ -22,9 +22,8 @@ def main():
                 'class_paths': {},
                 'engine': 'CYCLES',
                 'device': 'GPU',
-                'camera_target': {'x':0,'y':0,'z':0},
                 'num_obj_min': 0,
-                'num_obj_max': 15,
+                'num_obj_max': 30,
                 'n_scenes': 500,
                 'n_img': 100
                 }
@@ -35,6 +34,7 @@ def main():
                         'big':['airplane', 'lamp', 'flowerpot', 'tower', 'train'],
                         'medium':['autobus', 'automobile', 'motorcycle', 'flowerpot'],
                         'small':['airplane', 'wastebin', 'suitcase', 'handbasket', 'bench', 'bottle', 'tin can', 'automobile', 'spigot', 'lamp', 'mailbox', 'flowerpot' ],
+                        'camera_target': {'x':0,'y':0,'z':0},
                         'cam_radius': list(range(1,5)),
                         }
     
@@ -80,8 +80,8 @@ def main():
                     scene_placement.scatter_objs_on_target_collection(target_collection, obj_collections)
             
             scene_hdri.set_random_hdri()
-            scene_hdri.deactivate_hdri()
-            scene_camera.update_camera_pos(scene_data.camera_target, random.choice(scene_param_dict['cam_radius']))
+            scene_hdri.deactivate_hdri() 
+            scene_camera.update_camera_pos(scene_param_dict['camera_target'], random.choice(scene_param_dict['cam_radius']))
                     
 
             if 'semantic' in render_param_dict['labels']:

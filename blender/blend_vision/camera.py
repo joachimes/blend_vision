@@ -23,10 +23,11 @@ class camera():
         cam = bpy.data.objects['Camera']
         t_loc_x = cam_target['x']
         t_loc_y = cam_target['y']
+        cam_target['z'] = random.random() * 0.25
 
         alpha = random.random()*math.tau
         cam.location.x = t_loc_x+math.cos(alpha) * cam_radius
         cam.location.y = t_loc_y+math.sin(alpha) * cam_radius
-        cam.location.z = 1
+        cam.location.z = max(random.random(), 0.25)
 
         self.look_at(cam, cam_target.values())

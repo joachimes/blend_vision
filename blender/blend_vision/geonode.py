@@ -104,7 +104,7 @@ class placement():
         tree = modifier.node_group
         nodes = tree.nodes
         nodes['Distribute Points on Faces'].inputs['Seed'].default_value = random.randint(0, 10000)
-        nodes['Distribute Points on Faces'].inputs['Distance Min'].default_value = random.uniform(0.3, 0.5)
+        nodes['Distribute Points on Faces'].inputs['Distance Min'].default_value = random.gauss(0.4, 0.09) # mean 0.4 and std 0.09, but this range is arbitrary
         for node in nodes:
             if 'Random' in node.name:
                 node.inputs['Seed'].default_value = random.randint(0, 10000)
