@@ -10,12 +10,13 @@ if not dir in sys.path:
     sys.path.append(dir)
 from blend_vision import scene, data, render, composition, hdri, texture, placement, camera
 
+
 def main():
     # Rendering n_scenes * n_img
     data_dict = {'data_dir': os.path.join(os.path.dirname(__file__), '..', 'data'),
                 'dataset_name': 'ShapeNetCore.v2',
                 'json_name': 'shapenetcore.taxonomy.json',
-                'model_name': 'model_normalized.obj',
+                'model_extension': 'obj',
                 'hdri_folder_path': 'hdri',
                 'render_folder': os.path.join(os.path.dirname(__file__), '..', 'data', 'Generated'),
                 'target_classes': ['airplane', 'wastebin', 'suitcase', 'handbasket', 'bench', 'bottle', 'autobus', 'tin can', 'automobile', 'spigot', 'lamp', 'mailbox', 'motorcycle', 'flowerpot', 'tower', 'train'],
@@ -23,7 +24,7 @@ def main():
                 'engine': 'CYCLES',
                 'device': 'GPU',
                 'num_obj_min': 0,
-                'num_obj_max': 30,
+                'num_obj_max': 1,
                 'n_scenes': 500,
                 'n_img': 100
                 }
@@ -58,14 +59,7 @@ def main():
     scene_placement = placement()
     semantic_labels = render_param_dict['semantic_label_colors']
     for scene_id in range(scene_data.n_scenes):
-        class_collection = bpy.data.collections.new('Background')
-        bpy.ops.mesh.primitive_plane_add(size=50, location=(0,0,0))
-        check_collection = [o for o in bpy.context.scene.collection.objects]
-        for o in bpy.context.selected_objects:
-            class_collection.objects.link(o)
-            if check_collection:
-                bpy.context.scene.collection.objects.unlink(o)
-
+        scene_data.load_base_scene()
         scene_data.load_data()
         img_id = str(time.time())
         for img_num in range(scene_data.n_img):
