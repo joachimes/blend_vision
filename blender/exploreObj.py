@@ -18,21 +18,25 @@ def main():
                 'json_name': 'shapenetcore.taxonomy.json',
                 'model_extension': 'obj',
                 'hdri_folder_path': 'hdri',
+                'texture_folder_path': 'textures',
                 'render_folder': os.path.join(os.path.dirname(__file__), '..', 'data', 'Generated'),
                 'target_classes': ['airplane', 'wastebin', 'suitcase', 'handbasket', 'bench', 'bottle', 'autobus', 'tin can', 'automobile', 'spigot', 'lamp', 'mailbox', 'motorcycle', 'flowerpot', 'tower', 'train'],
                 'class_paths': {},
                 'engine': 'CYCLES',
                 'device': 'GPU',
                 'num_obj_min': 0,
-                'num_obj_max': 1,
+                'num_obj_max': 50,
                 'n_scenes': 500,
                 'n_img': 100
                 }
-    # render_param_dict = {'render_folder':'Generated','labels':['instance', 'semantic', 'normal', 'depth'], 'semantic':['automobile'], 'semantic_label_colors':{}}
-    render_param_dict = {'render_folder':'Generated','labels':['semantic', 'normal', 'depth'], 'semantic':['automobile'], 'semantic_label_colors':{}}
+    render_param_dict = {'render_folder':'Generated','labels':['instance', 'semantic', 'normal', 'depth'], 'semantic':['automobile'], 'semantic_label_colors':{}}
+    # render_param_dict = {'render_folder':'Generated','labels':['semantic', 'normal', 'depth'], 'semantic':['automobile'], 'semantic_label_colors':{}}
 
     scene_param_dict = {'hierarchy': {'Background':['airplane', 'wastebin', 'suitcase', 'handbasket', 'bench', 'bottle', 'autobus'
-                                                    , 'tin can', 'automobile', 'spigot', 'lamp', 'mailbox', 'motorcycle', 'flowerpot', 'tower', 'train']},
+                                                    , 'tin can', 'automobile', 'spigot', 'lamp', 'mailbox', 'motorcycle', 'flowerpot', 'tower', 'train'],
+                                        'wastebin':['tin can', 'bottle'],
+                                        'bench':['tin can', 'suitcase', 'bottle']
+                                    },
                         'big':['airplane', 'lamp', 'flowerpot', 'tower', 'train'],
                         'medium':['autobus', 'automobile', 'motorcycle', 'flowerpot'],
                         'small':['airplane', 'wastebin', 'suitcase', 'handbasket', 'bench', 'bottle', 'tin can', 'automobile', 'spigot', 'lamp', 'mailbox', 'flowerpot' ],
@@ -42,11 +46,11 @@ def main():
     
     scene_data = data(data_dict)
     scene_obj = scene(engine=scene_data.engine, device=scene_data.device)
-    scene_hdri = hdri(os.path.join(scene_data.data_dir, scene_data.hdri_folder_path))
     scene_render = render(scene_data.render_folder)
     scene_comp = composition()
     scene_camera = camera()
-    obj_texture = texture(os.path.join(scene_data.data_dir, 'textures'))
+    scene_hdri = hdri(os.path.join(scene_data.data_dir, scene_data.hdri_folder_path))
+    obj_texture = texture(os.path.join(scene_data.data_dir, scene_data.texture_folder_path))
 
     scene_data.load_obj_paths()
 

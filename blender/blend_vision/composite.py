@@ -4,7 +4,6 @@ import os
 class composition():
     def __init__(self) -> None:
         self.desired_nodes = ['CompositorNodeRLayers'
-                        , 'CompositorNodeMath'
                         , 'CompositorNodeMapRange'
                         , 'CompositorNodeComposite']
         scene_context = bpy.context.scene
@@ -42,10 +41,12 @@ class composition():
         self.tree.links.new(scene_nodes['CompositorNodeComposite'].inputs['Image'], scene_nodes['CompositorNodeRLayers'].outputs['Image'])
 
         # Depth image
-        scene_nodes['CompositorNodeMath'].operation = 'DIVIDE' 
-        scene_nodes['CompositorNodeMath'].inputs[1].default_value = 100.0 # 
-        self.tree.links.new(scene_nodes['CompositorNodeMath'].inputs[0], scene_nodes['CompositorNodeRLayers'].outputs['Depth'])
-        self.tree.links.new(file_outputs['Depth'].inputs['Image'], scene_nodes['CompositorNodeMath'].outputs['Value'])
+        scene_nodes['CompositorNodeMapRange'].inputs['From Min'].default_value = 0.0
+        scene_nodes['CompositorNodeMapRange'].inputs['From Max'].default_value = 100.0
+        scene_nodes['CompositorNodeMapRange'].inputs['To Min'].default_value = 1.0
+        scene_nodes['CompositorNodeMapRange'].inputs['To Max'].default_value = 0.0
+        self.tree.links.new(scene_nodes['CompositorNodeMapRange'].inputs['Value'], scene_nodes['CompositorNodeRLayers'].outputs['Depth'])
+        self.tree.links.new(file_outputs['Depth'].inputs['Image'], scene_nodes['CompositorNodeMapRange'].outputs['Value'])
 
         # Normal image
         self.tree.links.new(file_outputs['Normal'].inputs['Image'], scene_nodes['CompositorNodeRLayers'].outputs['Normal'])
