@@ -27,7 +27,8 @@ def main():
                 'n_scenes': 500,
                 'n_img': 100
                 }
-    render_param_dict = {'render_folder':'Generated','labels':['instance', 'semantic', 'normal', 'depth'], 'semantic':['automobile'], 'semantic_label_colors':{}}
+    # render_param_dict = {'render_folder':'Generated','labels':['instance', 'semantic', 'normal', 'depth'], 'semantic':['automobile'], 'semantic_label_colors':{}}
+    render_param_dict = {'render_folder':'Generated','labels':['semantic', 'normal', 'depth'], 'semantic':['automobile'], 'semantic_label_colors':{}}
 
     scene_param_dict = {'hierarchy': {'Background':['airplane', 'wastebin', 'suitcase', 'handbasket', 'bench', 'bottle', 'autobus'
                                                     , 'tin can', 'automobile', 'spigot', 'lamp', 'mailbox', 'motorcycle', 'flowerpot', 'tower', 'train']},
@@ -104,6 +105,7 @@ def main():
 
 
             # Reset shading before final render
+            scene_render.segmentation_reset(objs=bpy.data.objects)
             scene_hdri.reactivate_hdri()
 
             # Render final pass

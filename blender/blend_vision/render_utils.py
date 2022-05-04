@@ -43,7 +43,6 @@ class render():
         self.instance_label_objs(bpy.data.objects)
         bpy.context.scene.render.filepath = os.path.join(self.data_dir, 'Instance_labels', img_name)
         bpy.ops.render.render(write_still = True)
-        self.segmentation_reset(objs=bpy.data.objects)
 
     def link_nodes(self, o_node_tree, input_node, output_node, input_node_target:str, output_node_target:str='Surface') -> None:
         o_node_tree.links.new(output_node.inputs[output_node_target]
