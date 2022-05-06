@@ -3,3 +3,5 @@ data/*
 __pycache__/
 blender/exploration\ copy.blend
 jobs/
+polyhavenScraper.py
+*.log
