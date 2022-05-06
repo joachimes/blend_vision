@@ -21,7 +21,7 @@ class data():
         
         for class_obj in dataset_json:
             if not exists(join(self.data_dir, self.dataset_name, class_obj['metadata']['name'])):
-                print(f"Data for class {class_obj['metadata']['label']} does not exist")
+                # print(f"Data for class {class_obj['metadata']['label']} does not exist")
                 continue
             for target_class in self.target_classes:
                 if target_class in class_obj['metadata']['label'] and exists(join(self.data_dir, self.dataset_name, class_obj['metadata']['name'])):
@@ -36,13 +36,13 @@ class data():
             class_collection = bpy.data.collections.new(class_path)
             bpy.context.scene.collection.children.link(class_collection)
 
-            model_files = glob(join(self.data_dir, self.dataset_name, self.class_paths[class_path], '**', '*.obj'), recursive=True)
+            model_files = glob(join(self.data_dir, self.dataset_name, self.class_paths[class_path], '**', '*.' + self.model_extension), recursive=True)
             sample_amount = random.randint(self.num_obj_min,self.num_obj_max)
             model_files_sample = random.sample(model_files, sample_amount)
     
             for model_file in model_files_sample:
                 # Import
-                bpy.ops.import_scene.obj(filepath=model_file)
+                getattr(bpy.ops.import_scene, self.model_extension)(filepath=model_file)
                 
                 # Init collection
                 # Check if mesh is in collection
@@ -58,10 +58,40 @@ class data():
 
                     if check_collection:
                         bpy.context.scene.collection.objects.unlink(o)
+    
+
+    def load_base_scene(self, base_scene_path:str=None, location:tuple=(0,0,0)):
+        class_collection = bpy.data.collections.new('Background')
+
+        if base_scene_path:
+            getattr(bpy.ops.import_scene, self.model_extension)(filepath=base_scene_path)
+
+            # bpy.context.view_layer.objects.active = base_scene_path
+            # o.select_set(True)
+        else:
+            bpy.ops.mesh.primitive_plane_add(size=50, location=location)
+            # o.select_set(True)
+            # Get into edit mode
+            bpy.ops.object.mode_set(mode="EDIT")
+                
+            # Subdivide faces
+            bpy.ops.mesh.subdivide(number_cuts=100)
+            bpy.ops.mesh.subdivide(number_cuts=5)
+
+            # Return back to object mode
+            bpy.ops.object.mode_set(mode="OBJECT")
+        
+        check_collection = [o for o in bpy.context.scene.collection.objects]
+        for o in bpy.context.selected_objects:
+            class_collection.objects.link(o)
+
+            if check_collection:
+                bpy.context.scene.collection.objects.unlink(o)
 
 
     def apply_rotation(self, obj):
         self.apply_transfrom(obj, use_rotation=True)
+
 
     #https://blender.stackexchange.com/questions/159538/how-to-apply-all-transformations-to-an-object-at-low-level
     def apply_transfrom(self, obj, use_location=False, use_rotation=False, use_scale=False):
@@ -106,6 +136,7 @@ class data():
 
     def move_out_of_frame(self, obj):
         obj.location = type(obj.location)([0, 0, -100])
+
 
     def render_path(self) -> None:
         # setup correct folder path

@@ -19,8 +19,9 @@ class texture():
         
         mapping = mat.node_tree.nodes.new('ShaderNodeMapping')
         # Change scale of texture map
-        mapping.inputs['Scale'].default_value[0] = 5.0
-        mapping.inputs['Scale'].default_value[1] = 5.0
+        scale = random.gauss(12,3)
+        mapping.inputs['Scale'].default_value[0] = scale
+        mapping.inputs['Scale'].default_value[1] = scale
         tex_coord = mat.node_tree.nodes.new('ShaderNodeTexCoord')
         mat.node_tree.links.new(mapping.inputs['Vector'], tex_coord.outputs['UV'])
 
