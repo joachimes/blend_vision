@@ -10,9 +10,15 @@ class texture():
     def set_material(self, obj, texPath):
         base_name = self.extract_base_name(texPath)
 
-        mat = bpy.data.materials.new(name=base_name)
+        mat = None
+        if base_name not in bpy.data.materials:
+            mat = bpy.data.materials.new(name=base_name)
+        else:
+            mat = bpy.data.materials[base_name]
         mat.use_nodes = True
         
+        mat.cycles.displacement_method = 'BOTH'
+
         # Get and set up nodes
         bsdf = mat.node_tree.nodes["Principled BSDF"]
         mat_output = mat.node_tree.nodes["Material Output"]
