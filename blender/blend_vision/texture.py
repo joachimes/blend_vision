@@ -25,7 +25,7 @@ class texture():
         
         mapping = mat.node_tree.nodes.new('ShaderNodeMapping')
         # Change scale of texture map
-        scale = random.gauss(12,3)
+        scale = random.gauss(100,20)
         mapping.inputs['Scale'].default_value[0] = scale
         mapping.inputs['Scale'].default_value[1] = scale
         tex_coord = mat.node_tree.nodes.new('ShaderNodeTexCoord')
@@ -51,6 +51,7 @@ class texture():
             
             elif path_type == 'dis': # Displacement map
                 disp_node = mat.node_tree.nodes.new('ShaderNodeDisplacement')
+                disp_node.inputs['Scale'].default_value = 0.02
                 mat.node_tree.links.new(disp_node.inputs['Height'], node_output)
                 mat.node_tree.links.new(mat_output.inputs['Displacement'], disp_node.outputs['Displacement'])
                 
@@ -85,7 +86,11 @@ class texture():
         assert self.node_background != None
         self.node_background.inputs[1].default_value = 1.0
 
+    def delete_material(self, obj):
+        for material_slot in obj.material_slots:
+            bpy.data.materials.remove(material_slot.material)
 
     def set_random_material(self, obj):
         texture_file = random.choice(os.listdir(self.path))
+        self.delete_material(obj)
         self.set_material(obj, os.path.join(self.path, texture_file))

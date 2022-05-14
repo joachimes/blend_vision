@@ -24,8 +24,8 @@ def main():
                 'class_paths': {},
                 'engine': 'CYCLES',
                 'device': 'GPU',
-                'num_obj_min': 0,
-                'num_obj_max': 50,
+                'num_obj_min': 5,
+                'num_obj_max': 30,
                 'n_scenes': 500,
                 'n_img': 100
                 }
