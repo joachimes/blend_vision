@@ -91,6 +91,10 @@ class texture():
             bpy.data.materials.remove(material_slot.material)
 
     def set_random_material(self, obj):
-        texture_file = random.choice(os.listdir(self.path))
+        dirlist = os.listdir(self.path)
+        texture_file = random.choice(dirlist)
+        while not os.path.isdir(os.path.join(self.path,texture_file)):
+            dirlist.remove(texture_file)
+            texture_file = random.choice(dirlist)
         self.delete_material(obj)
         self.set_material(obj, os.path.join(self.path, texture_file))

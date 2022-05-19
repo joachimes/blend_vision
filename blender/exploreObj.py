@@ -20,29 +20,32 @@ def main():
                 'hdri_folder_path': 'hdri',
                 'texture_folder_path': 'textures',
                 'render_folder': os.path.join(os.path.dirname(__file__), '..', 'data', 'Generated'),
-                'target_classes': ['airplane', 'wastebin', 'suitcase', 'handbasket', 'bench', 'bottle', 'autobus', 'tin can', 'automobile', 'spigot', 'lamp', 'mailbox', 'motorcycle', 'flowerpot', 'tower', 'train'],
+                'target_classes': ['camera', 'tin can'],
+                # 'target_classes': ['airplane', 'wastebin', 'suitcase', 'handbasket', 'bench', 'bottle', 'autobus', 'tin can', 'automobile', 'spigot', 'lamp', 'mailbox', 'motorcycle', 'flowerpot', 'tower', 'train'],
                 'class_paths': {},
                 'engine': 'CYCLES',
-                'device': 'GPU',
+                'device': None,
                 'num_obj_min': 5,
-                'num_obj_max': 30,
+                'num_obj_max': 6,
                 'n_scenes': 500,
                 'n_img': 100
                 }
-    render_param_dict = {'render_folder':'Generated','labels':['instance', 'semantic', 'normal', 'depth'], 'semantic':['automobile'], 'semantic_label_colors':{}}
+    render_param_dict = {'render_folder':'Generated','labels':['instance', 'semantic', 'normal', 'depth'], 'semantic':['camera'], 'semantic_label_colors':{}}
+    # render_param_dict = {'render_folder':'Generated','labels':['instance', 'semantic', 'normal', 'depth'], 'semantic':['automobile'], 'semantic_label_colors':{}}
     # render_param_dict = {'render_folder':'Generated','labels':['semantic', 'normal', 'depth'], 'semantic':['automobile'], 'semantic_label_colors':{}}
 
-    scene_param_dict = {'hierarchy': {'Background':['airplane', 'wastebin', 'suitcase', 'handbasket', 'bench', 'bottle', 'autobus'
-                                                    , 'tin can', 'automobile', 'spigot', 'lamp', 'mailbox', 'motorcycle', 'flowerpot', 'tower', 'train'],
-                                        'wastebin':['tin can', 'bottle'],
-                                        'bench':['tin can', 'suitcase', 'bottle']
-                                    },
-                        'big':['airplane', 'lamp', 'flowerpot', 'tower', 'train'],
-                        'medium':['autobus', 'automobile', 'motorcycle', 'flowerpot'],
-                        'small':['airplane', 'wastebin', 'suitcase', 'handbasket', 'bench', 'bottle', 'tin can', 'automobile', 'spigot', 'lamp', 'mailbox', 'flowerpot' ],
+    scene_param_dict = { 'hierarchy':{'Background':['camera', 'tin can']},
                         'camera_target': {'x':0,'y':0,'z':0},
                         'cam_radius': list(range(1,5)),
                         }
+                        # 'hierarchy': {'Background':['airplane', 'wastebin', 'suitcase', 'handbasket', 'bench', 'bottle', 'autobus'
+                        #                             , 'tin can', 'automobile', 'spigot', 'lamp', 'mailbox', 'motorcycle', 'flowerpot', 'tower', 'train'],
+                        #                 'wastebin':['tin can', 'bottle'],
+                        #                 'bench':['tin can', 'suitcase', 'bottle']
+                        #             },
+                        # 'big':['airplane', 'lamp', 'flowerpot', 'tower', 'train'],
+                        # 'medium':['autobus', 'automobile', 'motorcycle', 'flowerpot'],
+                        # 'small':['airplane', 'wastebin', 'suitcase', 'handbasket', 'bench', 'bottle', 'tin can', 'automobile', 'spigot', 'lamp', 'mailbox', 'flowerpot' ],
     
     scene_data = data(data_dict)
     scene_obj = scene(engine=scene_data.engine, device=scene_data.device)
@@ -68,7 +71,6 @@ def main():
         img_id = str(time.time())
         for img_num in range(scene_data.n_img):
             img_name = img_id + '_' + str(scene_id) + '_' + str(img_num)
-            
             for o in bpy.data.collections['Background'].objects:
                 obj_texture.set_random_material(o)
             # Set transforms
@@ -81,7 +83,6 @@ def main():
             scene_hdri.set_random_hdri()
             scene_hdri.deactivate_hdri() 
             scene_camera.update_camera_pos(scene_param_dict['camera_target'], random.choice(scene_param_dict['cam_radius']))
-                    
 
             if 'semantic' in render_param_dict['labels']:
                 # Set material to black for label images

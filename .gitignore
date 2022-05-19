@@ -5,3 +5,4 @@ blender/exploration\ copy.blend
 jobs/
 polyhavenScraper.py
 *.log
+.DS_store
