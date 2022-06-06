@@ -16,7 +16,8 @@ class placement():
 
     def setup(self, obj, collections:list):
         modifier = None
-        if any(geo_node := [mod for mod in obj.modifiers if mod.type == 'NODES']):
+        geo_node = [mod for mod in obj.modifiers if mod.type == 'NODES' and mod.name == obj.name]
+        if geo_node:
             modifier = geo_node[0]
             self.shuffle_modifier(modifier)
             return
